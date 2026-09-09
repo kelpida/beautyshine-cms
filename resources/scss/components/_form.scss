@@ -1,0 +1,37 @@
+.ant-form {
+    .editor {
+        padding: 0.3rem;
+        &:focus {
+            border: none;
+        }
+        .tiptap {
+            background-color: #fff;
+            &:focus-visible {
+                outline: #fff;
+            }
+
+            &.ProseMirror-focused {
+                border: none !important;
+                &:focus-visible {
+                    outline: #fff;
+                }
+            }
+
+            table,
+            td,
+            th,
+            tr {
+                border: 1px solid #dfdfdf;
+            }
+        }
+    }
+}
+
+.ant-error-message {
+    left: inherit !important;
+    right: inherit !important;
+    transform: none !important;
+    .ant-message-notice-wrapper {
+        right: 0;
+    }
+}
