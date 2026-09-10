@@ -1,5 +1,55 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+@layer base {
+    a {
+        text-decoration: none !important;
+    }
+}
 
+/* TipTap Editor integration with Ant Design */
+.ant-form .editor {
+    padding: 0.3rem;
+}
+
+.ant-form .editor:focus {
+    border: none;
+}
+
+.ant-form .editor .tiptap {
+    background-color: #fff;
+}
+
+.ant-form .editor .tiptap:focus-visible {
+    outline: #fff;
+}
+
+.ant-form .editor .tiptap.ProseMirror-focused {
+    border: none !important;
+}
+
+.ant-form .editor .tiptap.ProseMirror-focused:focus-visible {
+    outline: #fff;
+}
+
+.ant-form .editor .tiptap table,
+.ant-form .editor .tiptap td,
+.ant-form .editor .tiptap th,
+.ant-form .editor .tiptap tr {
+    border: 1px solid #dfdfdf;
+}
+
+/* Ant Design Error Message tweaks */
+.ant-error-message {
+    left: inherit !important;
+    right: inherit !important;
+    transform: none !important;
+}
+
+.ant-error-message .ant-message-notice-wrapper {
+    right: 0;
+}
+
+/* Ant Design Table Container */
+.ant-table-container {
+    z-index: 1;
+}
