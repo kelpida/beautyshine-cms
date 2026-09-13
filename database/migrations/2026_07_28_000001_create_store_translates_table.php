@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('store_translates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('store_id')->constrained('stores')->cascadeOnDelete();
+            $table->string('name')->nullable();
             $table->string('locale')->index();
             $table->text('address')->nullable();
             $table->timestamps();

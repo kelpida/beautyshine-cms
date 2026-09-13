@@ -17,8 +17,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             UserPermissionRoles::class,
-            PackageGenderSeeder::class,
-            PackageAgeSeeder::class,
         ]);
     }
 }

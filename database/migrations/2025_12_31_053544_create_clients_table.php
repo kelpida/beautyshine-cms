@@ -22,7 +22,12 @@ return new class extends Migration
             $table->string('address');
             $table->uuid('visitor_id')->nullable();
             $table->timestamp('email_verified_at')->nullable();
+
+            $table->string('social_provider')->nullable();
+            $table->string('social_provider_id')->nullable();
+            
             $table->rememberToken();
+            $table->unique(['social_provider', 'social_provider_id']);
             $table->timestamps();
         });
 
