@@ -11,7 +11,21 @@ class StoreAttributeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_array($this->translations)) {
+            $this->merge([
+                'translations' => array_values(array_filter($this->translations, function ($item) {
+                    return !empty(trim($item['name'] ?? ''));
+                })),
+            ]);
+        }
     }
 
     /**
@@ -22,7 +36,31 @@ class StoreAttributeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:attributes,slug',
+            'format_type' => 'required|in:select,radio,text,number,range,checkbox,color,date,time,datetime,file,image,textarea,select_multiple,radio_multiple,range_multiple,checkbox_multiple,color_multiple,date_multiple,time_multiple,datetime_multiple',
+            'is_active' => 'required|boolean',
+            'sort_order' => 'nullable|integer',
+
+            'translations' => 'nullable|array',
+            'translations.*.locale' => ['required', 'string', 'max:10', 'distinct', 'exists:languages,code'],
+            'translations.*.name' => ['required', 'string', 'max:255'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'The :attribute field is required.',
+            'name.string' => 'The :attribute must be a string.',
+            'name.max' => 'The :attribute may not be greater than :max characters.',
+            'is_active.required' => 'The :attribute field is required.',
+            'is_active.boolean' => 'The :attribute field must be true or false.',
+            'sort_order.nullable' => 'The :attribute field must be an integer.',
+            'translations.*.locale.required' => 'The translation language is required.',
+            'translations.*.locale.exists' => 'The selected translation language does not exist.',
+            'translations.*.locale.distinct' => 'Each translation must be for a unique language.',
+            'translations.*.name.required' => 'The translated name is required.',
         ];
     }
 }

@@ -63,64 +63,42 @@ export const SideBarMenuList = [
         ],
     },
     {
-        key: "packagesGroup",
-        label: "Packages Management",
+        key: "eshopGroup",
+        label: "E-shop Management",
         icon: <HomeOutlined />,
-        permission: "index-package",
+        permission: "index-eshop",
         children: [
-            {
-                key: RouteList.packages(),
-                label: <Link href={RouteList.packages()}>All Packages</Link>,
-                permission: "index-package",
-            },
+            // {
+            //     key: RouteList.eshopOrders(),
+            //     label: <Link href={RouteList.eshopOrders()}>All Orders</Link>,
+            //     permission: "index-eshop-order",
+            // },
 
             {
-                key: RouteList.createPackage(),
+                key: RouteList.eshopProducts(),
                 label: (
-                    <Link href={RouteList.createPackage()}>Create Package</Link>
+                    <Link href={RouteList.eshopProducts()}>All Products</Link>
                 ),
-                permission: "store-package",
+                permission: "store-eshop-product",
             },
             {
-                key: RouteList.packageCategories(),
+                key: RouteList.eshopCategories(),
                 label: (
-                    <Link href={RouteList.packageCategories()}>
-                        Package Categories
-                    </Link>
+                    <Link href={RouteList.eshopCategories()}>Categories</Link>
                 ),
-                permission: "index-package-category",
+                permission: "index-eshop-category",
             },
             {
-                key: RouteList.packageGenders(),
+                key: RouteList.eshopTags(),
+                label: <Link href={RouteList.eshopTags()}>Tags</Link>,
+                permission: "index-eshop-tag",
+            },
+            {
+                key: RouteList.eshopAttributes(),
                 label: (
-                    <Link href={RouteList.packageGenders()}>
-                        Package Genders
-                    </Link>
+                    <Link href={RouteList.eshopAttributes()}>Attributes</Link>
                 ),
                 permission: "",
-            },
-            {
-                key: RouteList.packageAges(),
-                label: <Link href={RouteList.packageAges()}>Package Ages</Link>,
-                permission: "",
-            },
-            {
-                key: RouteList.packageStatuses(),
-                label: (
-                    <Link href={RouteList.packageStatuses()}>
-                        Package Statuses
-                    </Link>
-                ),
-                permission: "index-package-status",
-            },
-            {
-                key: RouteList.packageAttributeCategories(),
-                label: (
-                    <Link href={RouteList.packageAttributeCategories()}>
-                        Test Categories
-                    </Link>
-                ),
-                permission: "index-attribute-category",
             },
         ],
     },

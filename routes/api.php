@@ -16,12 +16,11 @@ use App\Http\Controllers\SubscriptionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
-use App\Http\Controllers\PackageController;
-use App\Http\Controllers\PackageStatusController;
-use App\Http\Controllers\PackageCategoryController;
-use App\Http\Controllers\PackageGenderController;
-use App\Http\Controllers\PackageAgeController;
-use App\Http\Controllers\PackageLogController;
+// use App\Http\Controllers\PackageController;
+// use App\Http\Controllers\PackageStatusController;
+// use App\Http\Controllers\PackageCategoryController;
+// use App\Http\Controllers\PackageGenderController;
+// use App\Http\Controllers\PackageAgeController;
 use App\Http\Controllers\VivaWebhookController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\StoreController;
@@ -56,8 +55,9 @@ Route::middleware(['api.bearer'])->group(function () {
         Route::get('/integrations', [IntegrationController::class, 'publicIndex']);
         Route::get('/stores', [StoreController::class, 'publicIndex']);
         Route::get('/visitor-session', [VisitorSessionController::class, 'store']);
-        Route::post('/package-log', [PackageLogController::class, 'store']);
+        // Route::post('/package-log', [PackageLogController::class, 'store']);
 
+        /*
         Route::prefix('/packages')->group(function () {
             Route::get('/', [PackageController::class, 'publicIndex']);
             Route::get('/categories', [PackageCategoryController::class, 'publicIndex']);
@@ -70,6 +70,7 @@ Route::middleware(['api.bearer'])->group(function () {
             //must be end of the packages group
             Route::get('{package}', [PackageController::class, 'publicShow']);
         });
+        */
 
         // Contact form routes
         Route::post('/contact', [ContactController::class, 'sendContactForm']);

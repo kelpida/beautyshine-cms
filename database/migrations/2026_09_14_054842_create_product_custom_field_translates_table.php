@@ -1,0 +1,31 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('product_custom_field_translates', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('product_custom_field_id')->constrained()->cascadeOnDelete();
+            $table->string('locale')->index();
+            $table->string('name');
+            $table->unique(['product_custom_field_id', 'locale'], 'pcf_trans_field_locale_unique');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('product_custom_field_translates');
+    }
+};

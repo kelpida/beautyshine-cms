@@ -28,10 +28,11 @@ return new class extends Migration
             $table->text('delivery_info')->nullable();
             $table->text('product_care')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->unsignedBigInteger('eshop_category_id')->nullable();
+
             $table->foreign('main_image_id')->references('id')->on('upload_files')->onDelete('set null');
             
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -18,12 +18,16 @@ export const RouteList: Record<string, any> = {
 
     propertyAttributes: () => "/properties/attributes",
     createPropertyAttribute: () => "/properties/attributes/create",
-    editPropertyAttribute: (id: string | number) => `/properties/attributes/${id}`,
-    deletePropertyAttribute: (id: string | number) => `/properties/attributes/${id}`,
+    editPropertyAttribute: (id: string | number) =>
+        `/properties/attributes/${id}`,
+    deletePropertyAttribute: (id: string | number) =>
+        `/properties/attributes/${id}`,
 
     propertyAttributeCategories: () => "/properties/attribute-categories",
-    createPropertyAttributeCategory: () => "/properties/attribute-categories/create",
-    editPropertyAttributeCategory: (id: string | number) => `/properties/attribute-categories/${id}`,
+    createPropertyAttributeCategory: () =>
+        "/properties/attribute-categories/create",
+    editPropertyAttributeCategory: (id: string | number) =>
+        `/properties/attribute-categories/${id}`,
     // post
     posts: () => "/posts",
     createPost: () => "/posts/create",
@@ -67,48 +71,6 @@ export const RouteList: Record<string, any> = {
     createBlockContent: () => "/block-contents/create",
     editBlockContent: (id: string | number) => `/block-contents/${id}`,
 
-    // packages
-    packages: () => "/packages",
-    createPackage: () => "/packages/create",
-    editPackage: (id: string | number) => `/packages/${id}`,
-
-    // package attribute category
-    packageAttributeCategories: () => "/packages/attribute-categories",
-    createPackageAttributeCategory: () =>
-        "/packages/attribute-categories/create",
-    editPackageAttributeCategory: (id: string | number) =>
-        `/packages/attribute-categories/${id}`,
-
-    // package attribute
-    packageAttributes: () => "/packages/attributes",
-    createPackageAttribute: () => "/packages/attributes/create",
-    editPackageAttribute: (id: string | number) => `/packages/attributes/${id}`,
-    deletePackageAttribute: (id: string | number) => `/packages/attributes/${id}`,
-
-    // package category
-    packageCategories: () => "/packages/categories",
-    createPackageCategory: () => "/packages/categories/create",
-    editPackageCategory: (id: string | number) => `/packages/categories/${id}`,
-    deletePackageCategory: (id: string | number) => `/packages/categories/${id}`,
-
-    // package gender
-    packageGenders: () => "/packages/genders",
-    createPackageGender: () => "/packages/genders/create",
-    editPackageGender: (id: string | number) => `/packages/genders/${id}`,
-    deletePackageGender: (id: string | number) => `/packages/genders/${id}`,
-
-    // package age
-    packageAges: () => "/packages/ages",
-    createPackageAge: () => "/packages/ages/create",
-    editPackageAge: (id: string | number) => `/packages/ages/${id}`,
-    deletePackageAge: (id: string | number) => `/packages/ages/${id}`,
-
-    // package status
-    packageStatuses: () => "/packages/statuses",
-    createPackageStatus: () => "/packages/statuses/create",
-    editPackageStatus: (id: string | number) => `/packages/statuses/${id}`,
-    deletePackageStatus: (id: string | number) => `/packages/statuses/${id}`,
-
     // integrations
     integrations: () => "/integrations",
     createIntegration: () => "/integrations/create",
@@ -147,4 +109,28 @@ export const RouteList: Record<string, any> = {
     // orders
     orders: () => "/orders",
     createOrder: () => "/orders/create",
+
+    // eshop categories
+    eshopCategories: () => "/eshop-categories",
+    createEshopCategory: () => "/eshop-categories/create",
+    editEshopCategory: (id: string | number) => `/eshop-categories/${id}/edit`,
+    deleteEshopCategory: (id: string | number) => `/eshop-categories/${id}`,
+
+    // eshop tags
+    eshopTags: () => "/eshop-tags",
+    createEshopTag: () => "/eshop-tags/create",
+    editEshopTag: (id: string | number) => `/eshop-tags/${id}/edit`,
+    deleteEshopTag: (id: string | number) => `/eshop-tags/${id}`,
+
+    // eshop attributes
+    eshopAttributes: () => "/eshop-attributes",
+    createEshopAttribute: () => "/eshop-attributes/create",
+    editEshopAttribute: (id: string | number) => `/eshop-attributes/${id}/edit`,
+    deleteEshopAttribute: (id: string | number) => `/eshop-attributes/${id}`,
+
+    // eshop products
+    eshopProducts: () => "/eshop-products",
+    createEshopProduct: () => "/eshop-products/create",
+    editEshopProduct: (id: string | number) => `/eshop-products/${id}/edit`,
+    deleteEshopProduct: (id: string | number) => `/eshop-products/${id}`,
 };

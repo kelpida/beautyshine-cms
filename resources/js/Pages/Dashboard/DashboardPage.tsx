@@ -9,24 +9,27 @@ const { RangePicker } = DatePicker;
 const { Text } = Typography;
 
 export default function DashboardPage({
-    visitsChart,
-    wishlistChart,
-    shareChart,
-    filters,
-}) {
+    visitsChart = [],
+    wishlistChart = [],
+    shareChart = [],
+    filters = {},
+}: any) {
+    const fromDate = filters?.from ? dayjs(filters.from) : dayjs().subtract(30, "day");
+    const toDate = filters?.to ? dayjs(filters.to) : dayjs();
+
     return (
         <>
             <Head title="Dashboard" />
 
             <Flex justify="space-between" align="center">
                 <Text style={{ fontSize: "1.25rem" }}>
-                    Welcome in PZLab CMS!
+                    Welcome in Alice Blooms CMS!
                 </Text>
 
                 <RangePicker
-                    value={[dayjs(filters.from), dayjs(filters.to)]}
+                    value={[fromDate, toDate]}
                     onChange={(dates) => {
-                        if (!dates) return;
+                        if (!dates || !dates[0] || !dates[1]) return;
                         router.get(
                             route("dashboard"),
                             {
@@ -34,7 +37,7 @@ export default function DashboardPage({
                                 from: dates[0].format("YYYY-MM-DD"),
                                 to: dates[1].format("YYYY-MM-DD"),
                             },
-                            { preserveState: true, replace: true }
+                            { preserveState: true, replace: true },
                         );
                     }}
                 />

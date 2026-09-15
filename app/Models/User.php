@@ -69,7 +69,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     public function hasRole(string $role): bool
     {
-        return $this->roles->contains('name', $role);
+        return $this->roles->contains('code', $role);
     }
 
     public function hasPermission(string $permission): bool

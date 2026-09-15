@@ -17,71 +17,73 @@ class UserPermissionRoles extends Seeder
     {
         // Define roles
         $roles = [
-            'super-admin',
-            'admin',
-            'editor',
-            'user',
+            [
+                'name' => 'Superadmin',
+                'code' => 'super-admin',
+            ],
+            [
+                'name' => 'Admin',
+                'code' => 'admin',
+            ],
+            [
+                'name' => 'Editor',
+                'code' => 'editor',
+            ],
+            [
+                'name' => 'User',
+                'code' => 'user',
+            ],
         ];
 
         foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role]);
+            Role::firstOrCreate(
+                ['code' => $role['code']],
+                ['name' => $role['name']]
+            );
         }
 
-        // Define permissions
-        $permissions = [
-            'store-post',
-            'index-post',
-            'view-post',
-            'edit-post',
-            'destroy-post',
-            'publish-post',
-        ];
-
-        foreach ($permissions as $perm) {
-            Permission::firstOrCreate(['name' => $perm]);
-        }
 
         // Attach all permissions to super-admin
-        $superAdminRole = Role::where('name', 'super-admin')->first();
-        $superAdminRole->permissions()->sync(Permission::all()->pluck('id'));
+        $superAdminRole = Role::where('code', 'super-admin')->first();
+        // $superAdminRole->permissions()->sync(Permission::all()->pluck('id'));
 
         // Assign selected permissions to admin
-        $admin = Role::where('name', 'admin')->first();
-        $admin->permissions()->sync(
-            Permission::whereIn('name', [
-                'index-post',
-                'view-post',
-                'edit-post',
-                'destroy-post',
-            ])->pluck('id')
-        );
+        // $admin = Role::where('code', 'admin')->first();
+        // $admin->permissions()->sync(
+        //     Permission::whereIn('name', [
+        //         'index-post',
+        //         'view-post',
+        //         'edit-post',
+        //         'destroy-post',
+        //     ])->pluck('id')
+        // );
 
-        // Assign selected permissions to editor
-        $editor = Role::where('name', 'editor')->first();
-        $editor->permissions()->sync(
-            Permission::whereIn('name', [
-                'index-post',
-                'view-post',
-                'store-post',
-                'edit-post',
-            ])->pluck('id')
-        );
+        // // Assign selected permissions to editor
+        // $editor = Role::where('code', 'editor')->first();
+        // $editor->permissions()->sync(
+        //     Permission::whereIn('name', [
+        //         'index-post',
+        //         'view-post',
+        //         'store-post',
+        //         'edit-post',
+        //     ])->pluck('id')
+        // );
 
-        // Assign selected permissions to user
-        $user = Role::where('name', 'user')->first();
-        $user->permissions()->sync(
-            Permission::whereIn('name', [
-                'index-post',
-                'view-post',
-            ])->pluck('id')
-        );
+        // // Assign selected permissions to user
+        // $user = Role::where('code', 'user')->first();
+        // $user->permissions()->sync(
+        //     Permission::whereIn('name', [
+        //         'index-post',
+        //         'view-post',
+        //     ])->pluck('id')
+        // );
 
         // Create super-admin user
         $superAdminUser = User::firstOrCreate(
             ['email' => 'superadmin@chameleon.com'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('password'), // Change this for production
+                'password' => Hash::make('rR1XCdFX87Bq7DfDd7xP'), // Change this for production
             ]
         );
 

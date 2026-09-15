@@ -27,4 +27,18 @@ class Tag extends Model
     {
         return $this->translates()->where('locale', $locale)->first();
     }
+
+    public static function nextSortOrder(): int
+    {
+        return (static::max('sort_order') ?? 0) + 1;
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if ($model->sort_order === null) {
+                $model->sort_order = static::nextSortOrder();
+            }
+        });
+    }
 }
