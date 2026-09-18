@@ -75,5 +75,123 @@
         }
       }
     ]
+  },
+  {
+    "title": "Contact",
+    "page_name": "contact",
+    "path": "/contact",
+    "blocks": [
+      {
+        "title": "Page Hero",
+        "component_name": "PageHero",
+        "label": "PageHero",
+        "content": {
+          "en": {
+            "title": "Contact",
+            "subtitle": "For reservations, custom orders and corporate gifting — we would love to hear from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "title": "Book Events",
+    "page_name": "book-events",
+    "path": "/book-events",
+    "blocks": [
+      {
+        "title": "Page Hero",
+        "component_name": "PageHero",
+        "label": "PageHero",
+        "content": {
+          "en": {
+            "title": "Book Events at Alice"
+          }
+        }
+      },
+      {
+        "title": "Celebrate With Us",
+        "component_name": "BookEventsIntro",
+        "label": "BookEventsIntro",
+        "content": {
+          "en": {
+            "heading": "Celebrate With Us",
+            "text": "From brunch gatherings to private celebrations, every detail is thoughtfully designed. Discover our beautiful space and specially curated menus.",
+            "button_text": "VIEW MENU",
+            "button_link": "/menu"
+          }
+        }
+      },
+      {
+        "title": "Wholesale Request",
+        "component_name": "WholesaleIntro",
+        "label": "WholesaleIntro",
+        "content": {
+          "en": {
+            "heading": "Wholesale Request",
+            "text": "Interested in partnering with Alice? We offer wholesale options for our freshly baked pastries, custom cakes, and specialty coffee. Reach out to discuss how we can supply your business."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "title": "Corporate Gifting",
+    "page_name": "corporate-gifting",
+    "path": "/corporate-gifting",
+    "blocks": [
+      {
+        "title": "Page Hero",
+        "component_name": "PageHero",
+        "label": "PageHero",
+        "content": {
+          "en": {
+            "title": "Corporate Gifting",
+            "subtitle": "Curated dessert boxes and cookie catering for offices, clients, and corporate events."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "title": "Gallery",
+    "page_name": "gallery",
+    "path": "/gallery",
+    "blocks": [
+      {
+        "title": "Page Hero",
+        "component_name": "PageHero",
+        "label": "PageHero",
+        "content": {
+          "en": {
+            "title": "Gallery"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "title": "Menu",
+    "page_name": "menu",
+    "path": "/menu",
+    "blocks": [
+      {
+        "title": "Page Hero",
+        "component_name": "PageHero",
+        "label": "PageHero",
+        "content": {
+          "en": {
+            "title": "Menu"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "title": "Order Cake",
+    "page_name": "order-cake",
+    "path": "/order-cake",
+    "blocks": []
   }
 ]
+
