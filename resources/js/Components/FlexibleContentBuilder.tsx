@@ -24,6 +24,7 @@ import {
     ArrowUpOutlined,
     ArrowDownOutlined,
     EditOutlined,
+    LayoutOutlined,
 } from "@ant-design/icons";
 import InputField from "@/Components/Form/InputField";
 import RichTextArea from "@/Components/Form/RichTextArea";
@@ -74,6 +75,13 @@ const BLOCK_TYPES = [
         icon: <UnorderedListOutlined />,
         color: "#13c2c2",
         description: "Bullet or numbered list",
+    },
+    {
+        id: "feature",
+        label: "Feature (Hero / Intro)",
+        icon: <LayoutOutlined />,
+        color: "#fa541c",
+        description: "Composite block for Hero/Feature sections",
     },
 ];
 
@@ -182,6 +190,8 @@ export default function FlexibleContentBuilder({
 
     const getBlockTemplate = (type) => {
         switch (type) {
+            case "feature":
+                return { heading: "", subheading: "", text: "", button_text: "", button_link: "", image_id: null };
             case "heading":
                 return { text: "" };
             case "text":
@@ -719,6 +729,52 @@ export default function FlexibleContentBuilder({
         );
     };
 
+    const renderFeatureBlock = (block, langCode) => {
+        const content = block.content[langCode] || {};
+        const isEnglish = langCode === "en";
+
+        return (
+            <Space direction="vertical" style={{ width: "100%" }}>
+                <InputField
+                    label="Heading"
+                    value={content.heading || ""}
+                    onChange={(e) => updateBlockContent(block.id, langCode, "heading", e.target.value)}
+                    onBlur={(e) => langCode === "en" && handleBlurTranslate(e.target.value, block.id, "heading")}
+                />
+                <InputField
+                    label="Subheading"
+                    value={content.subheading || ""}
+                    onChange={(e) => updateBlockContent(block.id, langCode, "subheading", e.target.value)}
+                    onBlur={(e) => langCode === "en" && handleBlurTranslate(e.target.value, block.id, "subheading")}
+                />
+                <RichTextArea
+                    label="Text Content"
+                    value={content.text || ""}
+                    onChange={(val) => updateBlockContent(block.id, langCode, "text", val)}
+                    onBlur={(html) => langCode === "en" && handleBlurTranslate(html, block.id, "text")}
+                />
+                <InputField
+                    label="Button Text"
+                    value={content.button_text || ""}
+                    onChange={(e) => updateBlockContent(block.id, langCode, "button_text", e.target.value)}
+                    onBlur={(e) => langCode === "en" && handleBlurTranslate(e.target.value, block.id, "button_text")}
+                />
+                <InputField
+                    label="Button Link"
+                    value={content.button_link || ""}
+                    onChange={(e) => updateBlockContent(block.id, langCode, "button_link", e.target.value)}
+                />
+                {isEnglish && (
+                    <MediaSelector
+                        existingImages={availableImages}
+                        setImages={(imgs) => updateBlockContent(block.id, langCode, "image_id", imgs[0]?.id || null)}
+                        images={content.image_id ? availableImages.filter((img) => img.id === content.image_id) : []}
+                    />
+                )}
+            </Space>
+        );
+    };
+
     const renderBlockContent = (block, langCode) => {
         switch (block.type) {
             case "heading":
@@ -733,6 +789,8 @@ export default function FlexibleContentBuilder({
                 return renderCarouselBlock(block, langCode);
             case "list":
                 return renderListBlock(block, langCode);
+            case "feature":
+                return renderFeatureBlock(block, langCode);
             default:
                 return null;
         }
