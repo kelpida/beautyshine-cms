@@ -1,0 +1,79 @@
+[
+  {
+    "title": "Home",
+    "page_name": "home",
+    "path": "/",
+    "blocks": [
+      {
+        "title": "Home Intro",
+        "component_name": "HomeIntro",
+        "label": "HomeIntro",
+        "content": {
+          "en": {
+            "heading": "A WORLD OF TASTE & IMAGINATION",
+            "text": "At Alice, every visit is an experience. From specialty coffee and handcrafted desserts to brunch at the Alice Eatery, custom cakes and curated corporate boxes — every detail is designed to delight.",
+            "button_text": "BOOK YOUR EVENT",
+            "button_link": "/book-events"
+          }
+        }
+      },
+      {
+        "title": "Corporate Gifts",
+        "component_name": "HomeCorporateGifts",
+        "label": "HomeCorporateGifts",
+        "content": {
+          "en": {
+            "heading": "CORPORATE GIFTS",
+            "text": "Elegant dessert boxes and curated packages for offices, events and special moments.",
+            "button_text": "EXPLORE GIFTING",
+            "button_link": "/corporate-gifting"
+          }
+        }
+      },
+      {
+        "title": "Order Requests",
+        "component_name": "HomeOrderRequests",
+        "label": "HomeOrderRequests",
+        "content": {
+          "en": {
+            "heading": "ORDER REQUESTS",
+            "subheading": "Wedding · Birthday cakes · Christening",
+            "button_text": "ORDER A CAKE",
+            "button_link": "/order-cake"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "title": "About Us",
+    "page_name": "about",
+    "path": "/about",
+    "blocks": [
+      {
+        "title": "The Story of Alice",
+        "component_name": "AboutStory",
+        "label": "AboutStory",
+        "content": {
+          "en": {
+            "heading": "The Story of Alice",
+            "text": "Alice was born from a journey through London, Paris, and Rome — cities where café culture, elegance, and unforgettable flavours come together to create moments that stay with you forever."
+          }
+        }
+      },
+      {
+        "title": "About Feature",
+        "component_name": "AboutFeature",
+        "label": "AboutFeature",
+        "content": {
+          "en": {
+            "heading": "ALICE",
+            "text": "Alice is more than a café. It is a space where coffee, desserts, brunch, and atmosphere come together to create a dreamlike experience. From the aroma of freshly brewed coffee to the beauty of handcrafted desserts, every detail is designed to awaken the senses.",
+            "button_text": "BOOK YOUR EVENT",
+            "button_link": "/book-events"
+          }
+        }
+      }
+    ]
+  }
+]
