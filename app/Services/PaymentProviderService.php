@@ -66,7 +66,7 @@ class PaymentProviderService
                     'fullName' => $client->name . ' ' . $client->surname,
                 ],
                 'sourceCode' => $this->sourceCode,
-                "urlFail" => "https://staging.diagnostikilemesou.com/payment-failed"
+                "urlFail" => "https://staging.alicedesserts.com/payment-failed"
             ]
         );
 

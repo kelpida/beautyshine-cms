@@ -1,6 +1,6 @@
 # Package Import Guide
 
-This guide explains how to import packages from `lab-agapiou` into the CMS (`cms_agapiou`).
+This guide explains how to import packages from `lab-agapiou` into the CMS (`alice-blooms-cms`).
 
 ## Methods
 
@@ -19,7 +19,7 @@ This guide explains how to import packages from `lab-agapiou` into the CMS (`cms
 
    Copy the JSON file to your CMS project and run:
    ```bash
-   cd cms_agapiou
+   cd alice-blooms-cms
    php artisan packages:import /path/to/packages-import.json
    ```
 

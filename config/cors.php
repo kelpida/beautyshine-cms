@@ -20,8 +20,8 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'https://staging.diagnostikilemesou.com',
-        'https://diagnostikilemesou.com',
+        'https://staging.alicedesserts.com',
+        'https://alicedesserts.com',
         'http://localhost:3000',
     ],
 
