@@ -20,16 +20,16 @@ export default function PageForm({ page = null, imagesData }) {
         processing,
         errors,
     } = useForm({
-        title: page?.data.title || "",
-        page_name: page?.data.page_name || "",
-        path: page?.data.path || "",
-        meta_image_id: page?.data.seo_meta.image.id || null,
-        meta_title: page?.data.seo_meta.title || "",
-        meta_description: page?.data.seo_meta.description || "",
+        title: page?.data?.title || "",
+        page_name: page?.data?.page_name || "",
+        path: page?.data?.path || "",
+        meta_image_id: page?.data?.seo_meta?.image?.id || null,
+        meta_title: page?.data?.seo_meta?.title || "",
+        meta_description: page?.data?.seo_meta?.description || "",
     });
 
     useEffect(() => {
-        if (page) {
+        if (page && page.data?.seo_meta?.image) {
             setImages([page.data.seo_meta.image]);
         }
     }, [page]);

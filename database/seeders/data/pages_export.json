@@ -8,40 +8,61 @@
         "title": "Home Intro",
         "component_name": "HomeIntro",
         "label": "HomeIntro",
-        "content": {
-          "en": {
-            "heading": "A WORLD OF TASTE & IMAGINATION",
-            "text": "At Alice, every visit is an experience. From specialty coffee and handcrafted desserts to brunch at the Alice Eatery, custom cakes and curated corporate boxes — every detail is designed to delight.",
-            "button_text": "BOOK YOUR EVENT",
-            "button_link": "/book-events"
+        "content": [
+          {
+            "id": "block-1789709742853-438",
+            "type": "custom",
+            "label": "HomeIntro",
+            "content": {
+              "en": {
+                "heading": "A WORLD OF TASTE & IMAGINATION",
+                "text": "At Alice, every visit is an experience. From specialty coffee and handcrafted desserts to brunch at the Alice Eatery, custom cakes and curated corporate boxes — every detail is designed to delight.",
+                "button_text": "BOOK YOUR EVENT",
+                "button_link": "/book-events"
+              }
+            }
           }
-        }
+        ]
       },
       {
         "title": "Corporate Gifts",
         "component_name": "HomeCorporateGifts",
         "label": "HomeCorporateGifts",
-        "content": {
-          "en": {
-            "heading": "CORPORATE GIFTS",
-            "text": "Elegant dessert boxes and curated packages for offices, events and special moments.",
-            "button_text": "EXPLORE GIFTING",
-            "button_link": "/corporate-gifting"
+        "content": [
+          {
+            "id": "block-1789709742853-931",
+            "type": "custom",
+            "label": "HomeCorporateGifts",
+            "content": {
+              "en": {
+                "heading": "CORPORATE GIFTS",
+                "text": "Elegant dessert boxes and curated packages for offices, events and special moments.",
+                "button_text": "EXPLORE GIFTING",
+                "button_link": "/corporate-gifting"
+              }
+            }
           }
-        }
+        ]
       },
       {
         "title": "Order Requests",
         "component_name": "HomeOrderRequests",
         "label": "HomeOrderRequests",
-        "content": {
-          "en": {
-            "heading": "ORDER REQUESTS",
-            "subheading": "Wedding · Birthday cakes · Christening",
-            "button_text": "ORDER A CAKE",
-            "button_link": "/order-cake"
+        "content": [
+          {
+            "id": "block-1789709742853-563",
+            "type": "custom",
+            "label": "HomeOrderRequests",
+            "content": {
+              "en": {
+                "heading": "ORDER REQUESTS",
+                "subheading": "Wedding · Birthday cakes · Christening",
+                "button_text": "ORDER A CAKE",
+                "button_link": "/order-cake"
+              }
+            }
           }
-        }
+        ]
       }
     ]
   },
@@ -54,25 +75,39 @@
         "title": "The Story of Alice",
         "component_name": "AboutStory",
         "label": "AboutStory",
-        "content": {
-          "en": {
-            "heading": "The Story of Alice",
-            "text": "Alice was born from a journey through London, Paris, and Rome — cities where café culture, elegance, and unforgettable flavours come together to create moments that stay with you forever."
+        "content": [
+          {
+            "id": "block-1789709742853-727",
+            "type": "custom",
+            "label": "AboutStory",
+            "content": {
+              "en": {
+                "heading": "The Story of Alice",
+                "text": "Alice was born from a journey through London, Paris, and Rome — cities where café culture, elegance, and unforgettable flavours come together to create moments that stay with you forever."
+              }
+            }
           }
-        }
+        ]
       },
       {
         "title": "About Feature",
         "component_name": "AboutFeature",
         "label": "AboutFeature",
-        "content": {
-          "en": {
-            "heading": "ALICE",
-            "text": "Alice is more than a café. It is a space where coffee, desserts, brunch, and atmosphere come together to create a dreamlike experience. From the aroma of freshly brewed coffee to the beauty of handcrafted desserts, every detail is designed to awaken the senses.",
-            "button_text": "BOOK YOUR EVENT",
-            "button_link": "/book-events"
+        "content": [
+          {
+            "id": "block-1789709742853-227",
+            "type": "custom",
+            "label": "AboutFeature",
+            "content": {
+              "en": {
+                "heading": "ALICE",
+                "text": "Alice is more than a café. It is a space where coffee, desserts, brunch, and atmosphere come together to create a dreamlike experience. From the aroma of freshly brewed coffee to the beauty of handcrafted desserts, every detail is designed to awaken the senses.",
+                "button_text": "BOOK YOUR EVENT",
+                "button_link": "/book-events"
+              }
+            }
           }
-        }
+        ]
       }
     ]
   },
@@ -85,12 +120,19 @@
         "title": "Page Hero",
         "component_name": "PageHero",
         "label": "PageHero",
-        "content": {
-          "en": {
-            "title": "Contact",
-            "subtitle": "For reservations, custom orders and corporate gifting — we would love to hear from you."
+        "content": [
+          {
+            "id": "block-1789709742853-826",
+            "type": "custom",
+            "label": "PageHero",
+            "content": {
+              "en": {
+                "title": "Contact",
+                "subtitle": "For reservations, custom orders and corporate gifting — we would love to hear from you."
+              }
+            }
           }
-        }
+        ]
       }
     ]
   },
@@ -103,35 +145,56 @@
         "title": "Page Hero",
         "component_name": "PageHero",
         "label": "PageHero",
-        "content": {
-          "en": {
-            "title": "Book Events at Alice"
+        "content": [
+          {
+            "id": "block-1789709742853-512",
+            "type": "custom",
+            "label": "PageHero",
+            "content": {
+              "en": {
+                "title": "Book Events at Alice"
+              }
+            }
           }
-        }
+        ]
       },
       {
         "title": "Celebrate With Us",
         "component_name": "BookEventsIntro",
         "label": "BookEventsIntro",
-        "content": {
-          "en": {
-            "heading": "Celebrate With Us",
-            "text": "From brunch gatherings to private celebrations, every detail is thoughtfully designed. Discover our beautiful space and specially curated menus.",
-            "button_text": "VIEW MENU",
-            "button_link": "/menu"
+        "content": [
+          {
+            "id": "block-1789709742853-333",
+            "type": "custom",
+            "label": "BookEventsIntro",
+            "content": {
+              "en": {
+                "heading": "Celebrate With Us",
+                "text": "From brunch gatherings to private celebrations, every detail is thoughtfully designed. Discover our beautiful space and specially curated menus.",
+                "button_text": "VIEW MENU",
+                "button_link": "/menu"
+              }
+            }
           }
-        }
+        ]
       },
       {
         "title": "Wholesale Request",
         "component_name": "WholesaleIntro",
         "label": "WholesaleIntro",
-        "content": {
-          "en": {
-            "heading": "Wholesale Request",
-            "text": "Interested in partnering with Alice? We offer wholesale options for our freshly baked pastries, custom cakes, and specialty coffee. Reach out to discuss how we can supply your business."
+        "content": [
+          {
+            "id": "block-1789709742853-261",
+            "type": "custom",
+            "label": "WholesaleIntro",
+            "content": {
+              "en": {
+                "heading": "Wholesale Request",
+                "text": "Interested in partnering with Alice? We offer wholesale options for our freshly baked pastries, custom cakes, and specialty coffee. Reach out to discuss how we can supply your business."
+              }
+            }
           }
-        }
+        ]
       }
     ]
   },
@@ -144,12 +207,19 @@
         "title": "Page Hero",
         "component_name": "PageHero",
         "label": "PageHero",
-        "content": {
-          "en": {
-            "title": "Corporate Gifting",
-            "subtitle": "Curated dessert boxes and cookie catering for offices, clients, and corporate events."
+        "content": [
+          {
+            "id": "block-1789709742853-981",
+            "type": "custom",
+            "label": "PageHero",
+            "content": {
+              "en": {
+                "title": "Corporate Gifting",
+                "subtitle": "Curated dessert boxes and cookie catering for offices, clients, and corporate events."
+              }
+            }
           }
-        }
+        ]
       }
     ]
   },
@@ -162,11 +232,18 @@
         "title": "Page Hero",
         "component_name": "PageHero",
         "label": "PageHero",
-        "content": {
-          "en": {
-            "title": "Gallery"
+        "content": [
+          {
+            "id": "block-1789709742853-578",
+            "type": "custom",
+            "label": "PageHero",
+            "content": {
+              "en": {
+                "title": "Gallery"
+              }
+            }
           }
-        }
+        ]
       }
     ]
   },
@@ -179,11 +256,18 @@
         "title": "Page Hero",
         "component_name": "PageHero",
         "label": "PageHero",
-        "content": {
-          "en": {
-            "title": "Menu"
+        "content": [
+          {
+            "id": "block-1789709742853-288",
+            "type": "custom",
+            "label": "PageHero",
+            "content": {
+              "en": {
+                "title": "Menu"
+              }
+            }
           }
-        }
+        ]
       }
     ]
   },
@@ -194,4 +278,3 @@
     "blocks": []
   }
 ]
-
