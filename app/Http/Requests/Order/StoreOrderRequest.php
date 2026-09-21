@@ -5,6 +5,7 @@ namespace App\Http\Requests\Order;
 use App\Enum\OrderSourceEnum;
 use App\Enum\PaymentMethodEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
 
@@ -19,6 +20,66 @@ class StoreOrderRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $merge = [];
+
+        // Support aliases 'pickup' -> 'pickup_details', 'delivery' -> 'delivery_details'
+        $pickupData = $this->pickup_details ?? $this->pickup;
+        $deliveryData = $this->delivery_details ?? $this->delivery;
+
+        if ($pickupData && is_array($pickupData)) {
+            if (!empty($pickupData['pickup_time']) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $pickupData['pickup_time'])) {
+                $pickupData['pickup_time'] = substr($pickupData['pickup_time'], 0, 5);
+            }
+            $merge['pickup_details'] = $pickupData;
+        }
+
+        if ($deliveryData && is_array($deliveryData)) {
+            if (!empty($deliveryData['delivery_time']) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $deliveryData['delivery_time'])) {
+                $deliveryData['delivery_time'] = substr($deliveryData['delivery_time'], 0, 5);
+            }
+            $merge['delivery_details'] = $deliveryData;
+        }
+
+        // Auto-detect or default order_type
+        if (!$this->has('order_type')) {
+            if (!empty($deliveryData)) {
+                $merge['order_type'] = 'delivery';
+            } elseif (!empty($pickupData)) {
+                $merge['order_type'] = 'pickup';
+            } else {
+                $merge['order_type'] = 'pickup';
+            }
+        }
+
+        // Normalize items: support both product_id and item_id
+        if ($this->has('items') && is_array($this->items)) {
+            $items = collect($this->items)->map(function ($item) {
+                if (!is_array($item)) {
+                    return $item;
+                }
+
+                if (isset($item['item_id']) && !isset($item['product_id'])) {
+                    $item['product_id'] = $item['item_id'];
+                } elseif (isset($item['product_id']) && !isset($item['item_id'])) {
+                    $item['item_id'] = $item['product_id'];
+                }
+
+                return $item;
+            })->all();
+
+            $merge['items'] = $items;
+        }
+
+        if (!empty($merge)) {
+            $this->merge($merge);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -27,35 +88,56 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'client_id' => ['nullable', 'integer', 'exists:clients,id'],
-            'client.name' => ['nullable', 'string'],
-            'client.surname' => ['nullable', 'string'],
-            'client.email' => ['nullable', 'email', 'unique:clients,email'],
-
+            'client.name' => ['nullable', 'string', 'max:255'],
+            'client.surname' => ['nullable', 'string', 'max:255'],
+            'client.email' => ['nullable', 'email', 'max:255'],
             'client.password' => [
                 'nullable',
                 'confirmed',
                 Password::defaults(),
             ],
-
-            'client.phone' => ['nullable', 'regex:/^[0-9]+$/', 'min:7', 'max:20', 'unique:clients,phone'],
-            'client.phone_code' => ['nullable', 'string', 'max:5'],
-
+            'client.phone' => ['nullable', 'string', 'max:20'],
+            'client.phone_code' => ['nullable', 'string', 'max:10'],
             'client.address' => ['nullable', 'string'],
 
             'promo_code_id' => ['nullable', 'integer', 'exists:promo_codes,id'],
 
             'source' => ['nullable', new Enum(OrderSourceEnum::class)],
-            'payment_method' => ['nullable', new Enum(PaymentMethodEnum::class)],
+            'order_type' => ['nullable', 'string', Rule::in(['pickup', 'delivery'])],
+            'payment_method' => ['nullable', 'string'],
 
             'items' => ['required', 'array', 'min:1'],
-            'items.*.item_id' => ['required', 'integer', 'distinct', 'exists:packages,id'],
+            'items.*.product_id' => ['required_without:items.*.item_id', 'integer', 'exists:products,id'],
+            'items.*.item_id' => ['nullable', 'integer', 'exists:products,id'],
+            'items.*.variation_id' => ['nullable', 'integer', 'exists:product_variations,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.price' => ['nullable', 'numeric', 'min:0'],
 
-            'appointments.store_id' => ['required', 'integer', 'exists:stores,id'],
-            'appointments.date' => ['required', 'date_format:Y-m-d'],
-            'appointments.start_time' => ['required', 'date_format:H:i'],
-            'appointments.end_time' => ['required', 'date_format:H:i'],
-            'appointments.duration' => ['required', 'integer'],
+            // Pickup details
+            'pickup_details' => ['nullable', 'array'],
+            'pickup_details.store_id' => ['nullable', 'integer', 'exists:stores,id'],
+            'pickup_details.pickup_date' => ['nullable', 'date_format:Y-m-d'],
+            'pickup_details.pickup_time' => ['nullable', 'date_format:H:i'],
+            'pickup_details.note' => ['nullable', 'string'],
+
+            // Delivery details
+            'delivery_details' => ['nullable', 'array'],
+            'delivery_details.delivery_address' => ['nullable', 'string', 'max:255'],
+            'delivery_details.post_code' => ['nullable', 'string', 'max:20'],
+            'delivery_details.city' => ['nullable', 'string', 'max:100'],
+            'delivery_details.country' => ['nullable', 'string', 'max:100'],
+            'delivery_details.delivery_date' => ['nullable', 'date_format:Y-m-d'],
+            'delivery_details.delivery_time' => ['nullable', 'date_format:H:i'],
+            'delivery_details.delivery_price' => ['nullable', 'numeric', 'min:0'],
+            'delivery_details.note' => ['nullable', 'string'],
+
+            // Legacy appointments
+            'appointments' => ['nullable', 'array'],
+            'appointments.store_id' => ['nullable', 'integer', 'exists:stores,id'],
+            'appointments.date' => ['nullable', 'date_format:Y-m-d'],
+            'appointments.start_time' => ['nullable', 'date_format:H:i'],
+            'appointments.end_time' => ['nullable', 'date_format:H:i'],
+            'appointments.duration' => ['nullable', 'integer'],
         ];
     }
 }

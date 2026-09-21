@@ -286,6 +286,15 @@ export const SideBarMenuList = [
                 label: <Link href={RouteList.languages()}>Contacts</Link>,
                 permission: "view-contacts",
             },
+            {
+                key: RouteList.paymentProviders(),
+                label: (
+                    <Link href={RouteList.paymentProviders()}>
+                        Payment Providers
+                    </Link>
+                ),
+                permission: "view-payment-provider",
+            },
         ],
     },
     {

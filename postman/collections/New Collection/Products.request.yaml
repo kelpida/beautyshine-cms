@@ -1,5 +1,5 @@
 $kind: http-request
-url: "{{URL}}/eshop/products"
+url: "{{URL}}/eshop/products/2"
 method: GET
 scripts:
   - type: beforeRequest

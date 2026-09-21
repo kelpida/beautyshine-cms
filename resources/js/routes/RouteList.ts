@@ -135,4 +135,10 @@ export const RouteList: Record<string, any> = {
     editEshopProduct: (id: string | number) => `/eshop-products/${id}/edit`,
     updateEshopProduct: (id: string | number) => `/eshop-products/${id}`,
     deleteEshopProduct: (id: string | number) => `/eshop-products/${id}`,
+
+    paymentProviders: () => "/payment-providers",
+    createPaymentProvider: () => "/payment-providers/create",
+    editPaymentProvider: (id: string | number) =>
+        `/payment-providers/${id}/edit`,
+    deletePaymentProvider: (id: string | number) => `/payment-providers/${id}`,
 };

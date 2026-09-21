@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\OrderItem;
-use App\Models\Package;
+use App\Models\Eshop\Product;
+use App\Models\Eshop\ProductAttributeOption;
+use App\Models\Eshop\ProductVariation;
 use App\Models\PromoCode;
 
 class CalculateAmountService
@@ -22,7 +23,7 @@ class CalculateAmountService
 
         $discountPrice = $this->discountPrice($promoCodeId, $itemsAmount);
 
-        $totalAmount = $itemsAmount - $discountPrice;
+        $totalAmount = max(0, $itemsAmount - $discountPrice);
 
         return [$itemsAmount, $discountPrice, $totalAmount];
     }
@@ -32,14 +33,46 @@ class CalculateAmountService
         $amount = 0;
 
         foreach ($items as $item) {
-            $package = Package::find($item['item_id']);
+            $productId = $item['product_id'] ?? $item['item_id'] ?? null;
+            $variationId = $item['variation_id'] ?? null;
+            $quantity = (int) ($item['quantity'] ?? 1);
 
-            if (!$package) {
-                continue; // or throw exception
+            $price = 0;
+
+            // 1. If explicit price is provided
+            if (isset($item['price']) && is_numeric($item['price'])) {
+                $price = (float) $item['price'];
             }
-            $totalItemAmount = $package->price * $item['quantity'];
+            // 2. If variation is specified
+            elseif ($variationId) {
+                $variation = ProductVariation::find($variationId);
+                if ($variation) {
+                    $price = $variation->sale_price !== null ? (float) $variation->sale_price : (float) $variation->price;
+                }
+            }
+            // 3. Fallback to product
+            elseif ($productId) {
+                $product = Product::find($productId);
+                if ($product) {
+                    $price = $product->sale_price !== null ? (float) $product->sale_price : (float) $product->base_price;
+                }
+            }
 
-            $amount += $totalItemAmount;
+            // 4. Add option price modifiers if any
+            if (!empty($item['options']) && is_array($item['options'])) {
+                foreach ($item['options'] as $opt) {
+                    if (isset($opt['price_modifier']) && is_numeric($opt['price_modifier'])) {
+                        $price += (float) $opt['price_modifier'];
+                    } elseif (!empty($opt['option_id'])) {
+                        $attrOpt = ProductAttributeOption::find($opt['option_id']);
+                        if ($attrOpt && $attrOpt->extra_price) {
+                            $price += (float) $attrOpt->extra_price;
+                        }
+                    }
+                }
+            }
+
+            $amount += ($price * $quantity);
         }
 
         return $amount;
@@ -60,11 +93,16 @@ class CalculateAmountService
                         break;
 
                     case 'amount':
-                        $discountPrice = $promoData->discount_value;
+                        $discountPrice = (float) $promoData->discount_value;
                         break;
                 }
 
-                // ✅ correct increment
+                // Cap discount at max_discount_amount if specified
+                if (!empty($promoData->max_discount_amount) && $discountPrice > (float) $promoData->max_discount_amount) {
+                    $discountPrice = (float) $promoData->max_discount_amount;
+                }
+
+                // Increment used count
                 $promoData->increment('used_count');
             }
         }

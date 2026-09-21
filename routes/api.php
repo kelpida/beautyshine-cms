@@ -58,7 +58,7 @@ Route::middleware(['api.bearer'])->group(function () {
         Route::post('/contact', [ContactController::class, 'sendContactForm']);
         Route::post('/subscribe', [ContactController::class, 'subscribe']);
         Route::post('/interested', [ContactController::class, 'sendInterestedForm']);
-        Route::post('/order', [OrderController::class, 'store']);
+        Route::post('/order', [OrderController::class, 'publicStore']);
 
         // Subscription route
         Route::post('/subscriptions', [SubscriptionController::class, 'store']);

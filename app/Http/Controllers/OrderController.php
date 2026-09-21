@@ -7,13 +7,13 @@ use App\Enum\PaymentMethodEnum;
 use App\Http\Requests\Order\PublicStoreOrderRequest;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
-use App\Models\Order;
-
 use App\Http\Resources\Order\OrderResource;
-use App\Http\Resources\Package\PackageResource;
+use App\Mail\ClientOrderMail;
 use App\Models\Client;
+use App\Models\Eshop\Product;
+use App\Models\Eshop\ProductVariation;
+use App\Models\Order;
 use App\Models\OrderAppointment;
-use App\Models\Package;
 use App\Models\Store;
 use App\Services\CalculateAmountService;
 use App\Services\PaymentProviderService;
@@ -35,12 +35,21 @@ class OrderController extends Controller
         $this->vivaWallet = $vivaWallet;
         $this->calculateAmount = $calculateAmount;
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Order::query()->with(['client', 'transactions', 'items']);
+        $query = Order::query()->with([
+            'client',
+            'transactions',
+            'items.options',
+            'items.customFields',
+            'pickupDetails',
+            'deliveryDetails',
+            'appointments'
+        ]);
 
         // 🔍 Filter by order ID
         if ($request->filled('order_id')) {
@@ -59,26 +68,31 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        // 🔥 Payment status (FIXED)
+        // 🔍 Filter by order type
+        if ($request->filled('order_type')) {
+            $query->where('order_type', $request->order_type);
+        }
+
+        // 🔥 Payment status
         $query->when(
             $request->filled('payment_status'),
             fn($q) =>
-            $q->whereHas(
-                'latestTransaction',
-                fn($q2) =>
-                $q2->where('status', $request->payment_status)
-            )
+                $q->whereHas(
+                    'latestTransaction',
+                    fn($q2) =>
+                        $q2->where('status', $request->payment_status)
+                )
         );
 
-        // 🔥 Transaction ID (FIXED)
+        // 🔥 Transaction ID
         $query->when(
             $request->filled('transaction_id'),
             fn($q) =>
-            $q->whereHas(
-                'latestTransaction',
-                fn($q2) =>
-                $q2->where('transaction_id', 'like', '%' . $request->transaction_id . '%')
-            )
+                $q->whereHas(
+                    'latestTransaction',
+                    fn($q2) =>
+                        $q2->where('transaction_id', 'like', '%' . $request->transaction_id . '%')
+                )
         );
 
         $orders = $query->latest()->paginate(15);
@@ -91,6 +105,7 @@ class OrderController extends Controller
                 'status',
                 'payment_status',
                 'transaction_id',
+                'order_type',
             ])
         ]);
     }
@@ -100,14 +115,18 @@ class OrderController extends Controller
      */
     public function create()
     {
-        $packages = Package::whereNull('deleted_at')->where('package_status_id', 1)->get();
+        $products = Product::whereNull('deleted_at')
+            ->where('is_active', true)
+            ->with(['mainImage', 'variations', 'customFields'])
+            ->get();
         $clients = Client::all();
-        $stores = Store::whereNull("deleted_at")->get();
+        $stores = Store::whereNull('deleted_at')->get();
 
         return Inertia::render('Orders/OrderFormPage', [
-            'packages' => PackageResource::collection($packages),
+            'products' => $products,
+            'packages' => $products, // backwards compatibility alias for OrderFormPage
             'clients' => $clients,
-            'stores' => $stores
+            'stores' => $stores,
         ]);
     }
 
@@ -134,49 +153,22 @@ class OrderController extends Controller
                 'promo_code_id' => $validatedData['promo_code_id'] ?? null,
                 'amount' => $itemsAmount,
                 'discount_amount' => $discountPrice ?? 0,
-                'source' => $validatedData['source'] ?? null,
-                'payment_method' => $validatedData['payment_method'] ?? null,
+                'source' => $validatedData['source'] ?? OrderSourceEnum::STORE->value,
+                'order_type' => $validatedData['order_type'] ?? 'pickup',
+                'payment_method' => $validatedData['payment_method'] ?? PaymentMethodEnum::CASH->value,
                 'total_amount' => $totalAmount,
                 'status' => Order::STATUS_PENDING,
             ]);
 
-            // ✅ optimize packages
-            $packages = Package::whereIn(
-                'id',
-                collect($validatedData['items'])->pluck('item_id')
-            )->get()->keyBy('id');
+            $this->createOrderItems($order, $validatedData['items']);
+            $this->createFulfillmentDetails($order, $validatedData);
 
-            foreach ($validatedData['items'] as $item) {
-                $package = $packages[$item['item_id']] ?? null;
-                if (!$package)
-                    continue;
-
-                $totalItemPrice = $package->price * $item['quantity'];
-
-                $order->items()->create([
-                    'package_id' => $package->id,
-                    'package_name' => $package->name,
-                    'price' => $package->price,
-                    'quantity' => $item['quantity'],
-                    'total_price' => $totalItemPrice,
-                ]);
-            }
-
-            $appointment = $validatedData['appointments'];
-
-            $order->appointments()->create([
-                'store_id' => $appointment['store_id'],
-                'date' => $appointment['date'],
-                'start_time' => $appointment['start_time'],
-                'end_time' => $appointment['end_time'],
-                'status' => OrderAppointment::STATUS_PENDING,
-                'duration' => $appointment['duration'],
-            ]);
-
-            // Send client order confirmation email only (admin email will be sent after payment)
+            // Send client confirmation email if email exists
             try {
                 $client = $order->client;
-                Mail::to($client->email)->send(new \App\Mail\ClientOrderMail($order, $client));
+                if ($client && $client->email) {
+                    Mail::to($client->email)->send(new \App\Mail\ClientOrderMail($order, $client));
+                }
             } catch (\Exception $e) {
                 Log::error('Order email notification failed: ' . $e->getMessage());
             }
@@ -186,8 +178,9 @@ class OrderController extends Controller
             ]);
         });
     }
+
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created resource publicly in storage.
      */
     public function publicStore(PublicStoreOrderRequest $request)
     {
@@ -200,71 +193,83 @@ class OrderController extends Controller
                     $validatedData['promo_code_id'] ?? null
                 );
 
-            $vivaData = $this->vivaWallet->createOrder(
-                $totalAmount,
-                $validatedData['client_id']
-            );
+            // Add delivery price to total if delivery is selected
+            $deliveryPrice = !empty($validatedData['delivery_details']['delivery_price'])
+                ? (float) $validatedData['delivery_details']['delivery_price']
+                : 0;
+            $finalTotalAmount = $totalAmount + $deliveryPrice;
+
+            // Resolve or create client
+            $clientId = $validatedData['client_id'] ?? null;
+            if (!$clientId && !empty($validatedData['client']['email'])) {
+                $client = Client::firstOrCreate(
+                    ['email' => $validatedData['client']['email']],
+                    array_filter([
+                        'name' => $validatedData['client']['name'] ?? '',
+                        'surname' => $validatedData['client']['surname'] ?? '',
+                        'phone' => $validatedData['client']['phone'] ?? null,
+                        'phone_code' => $validatedData['client']['phone_code'] ?? null,
+                        'address' => $validatedData['client']['address'] ?? null,
+                    ])
+                );
+                $clientId = $client->id;
+            }
 
             $order = Order::create([
-                'client_id' => $validatedData['client_id'],
+                'client_id' => $clientId,
                 'promo_code_id' => $validatedData['promo_code_id'] ?? null,
                 'amount' => $itemsAmount,
                 'discount_amount' => $discountPrice ?? 0,
-                'source' =>  OrderSourceEnum::STORE,
-                'payment_method' => PaymentMethodEnum::CARD,
-                'total_amount' => $totalAmount,
+                'source' => $validatedData['source'] ?? OrderSourceEnum::ONLINE->value,
+                'order_type' => $validatedData['order_type'] ?? 'pickup',
+                'payment_method' => $validatedData['payment_method'] ?? PaymentMethodEnum::CARD->value,
+                'total_amount' => $finalTotalAmount,
                 'status' => Order::STATUS_PENDING,
             ]);
 
-            // ✅ optimize packages
-            $packages = Package::whereIn(
-                'id',
-                collect($validatedData['items'])->pluck('item_id')
-            )->get()->keyBy('id');
+            $this->createOrderItems($order, $validatedData['items']);
+            $this->createFulfillmentDetails($order, $validatedData);
 
-            foreach ($validatedData['items'] as $item) {
-                $package = $packages[$item['item_id']] ?? null;
-                if (!$package)
-                    continue;
+            // Handle payment gateway or transaction
+            $checkoutUrl = null;
+            $paymentMethod = $validatedData['payment_method'] ?? PaymentMethodEnum::CARD->value;
 
-                $totalItemPrice = $package->price * $item['quantity'];
+            if ($paymentMethod === PaymentMethodEnum::CARD->value || $paymentMethod === 'card') {
+                try {
+                    $vivaData = $this->vivaWallet->createOrder(
+                        $finalTotalAmount,
+                        $clientId
+                    );
 
-                $order->items()->create([
-                    'package_id' => $package->id,
-                    'package_name' => $package->name,
-                    'price' => $package->price,
-                    'quantity' => $item['quantity'],
-                    'total_price' => $totalItemPrice,
+                    $order->transactions()->create([
+                        'order_code' => $vivaData['orderCode'] ?? null,
+                        'status' => 'pending',
+                    ]);
+
+                    $checkoutUrl = $vivaData['checkoutUrl'] ?? null;
+                } catch (\Exception $e) {
+                    Log::error('Viva Wallet order creation failed: ' . $e->getMessage());
+                }
+            } else {
+                $order->transactions()->create([
+                    'order_code' => 'ORD-' . strtoupper(uniqid()),
+                    'status' => 'pending',
                 ]);
             }
 
-            $order->transactions()->create([
-                'order_code' => $vivaData['orderCode'],
-                'status' => 'pending',
-            ]);
-
-            $appointment = $validatedData['appointments'];
-
-            $order->appointments()->create([
-                'store_id' => $appointment['store_id'],
-                'date' => $appointment['date'],
-                'start_time' => $appointment['start_time'],
-                'end_time' => $appointment['end_time'],
-                'status' => OrderAppointment::STATUS_PENDING,
-                'duration' => $appointment['duration'],
-            ]);
-
-            // Send client order confirmation email only (admin email will be sent after payment)
+            // Send client confirmation email
             try {
                 $client = $order->client;
-                Mail::to($client->email)->send(new \App\Mail\ClientOrderMail($order, $client));
+                if ($client && $client->email) {
+                    Mail::to($client->email)->send(new ClientOrderMail($order, $client));
+                }
             } catch (\Exception $e) {
                 Log::error('Order email notification failed: ' . $e->getMessage());
             }
 
             return response()->json([
                 'order_id' => $order->id,
-                'checkout_url' => $vivaData['checkoutUrl'],
+                'checkout_url' => $checkoutUrl,
             ]);
         });
     }
@@ -274,7 +279,16 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        $order->load(['client', 'transactions', 'items', 'promoCode', 'appointments']);
+        $order->load([
+            'client',
+            'transactions',
+            'items.options',
+            'items.customFields',
+            'promoCode',
+            'appointments.store',
+            'pickupDetails.store',
+            'deliveryDetails',
+        ]);
 
         if (!$order->is_seen) {
             $order->update([
@@ -304,7 +318,11 @@ class OrderController extends Controller
         $validatedData = $request->validated();
         $order->update($validatedData);
 
-        $order->appointments->update(["status" => $validatedData['status'] !== "processing" ? $validatedData['status'] : "confirmed"]);
+        if ($order->appointments) {
+            $order->appointments->update([
+                'status' => $validatedData['status'] !== 'processing' ? $validatedData['status'] : 'confirmed'
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Order updated successfully.');
     }
@@ -315,5 +333,131 @@ class OrderController extends Controller
     public function destroy(Order $order)
     {
         //
+    }
+
+    /**
+     * Helper to create items, options, and custom fields for an order.
+     */
+    protected function createOrderItems(Order $order, array $items): void
+    {
+        $productIds = collect($items)
+            ->map(fn($item) => $item['product_id'] ?? $item['item_id'] ?? null)
+            ->filter()
+            ->unique();
+
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+        $variationIds = collect($items)
+            ->pluck('variation_id')
+            ->filter()
+            ->unique();
+
+        $variations = $variationIds->isNotEmpty()
+            ? ProductVariation::whereIn('id', $variationIds)->get()->keyBy('id')
+            : collect();
+
+        foreach ($items as $item) {
+            $productId = $item['product_id'] ?? $item['item_id'] ?? null;
+            $product = $products[$productId] ?? null;
+            if (!$product) {
+                continue;
+            }
+
+            $variation = !empty($item['variation_id'])
+                ? ($variations[$item['variation_id']] ?? null)
+                : null;
+
+            $unitPrice = isset($item['price']) && is_numeric($item['price'])
+                ? (float) $item['price']
+                : (float) ($variation?->sale_price ?? $variation?->price ?? $product->sale_price ?? $product->base_price ?? 0);
+
+            // Add option price modifiers
+            if (!empty($item['options']) && is_array($item['options'])) {
+                foreach ($item['options'] as $opt) {
+                    if (isset($opt['price_modifier']) && is_numeric($opt['price_modifier'])) {
+                        $unitPrice += (float) $opt['price_modifier'];
+                    }
+                }
+            }
+
+            $quantity = (int) ($item['quantity'] ?? 1);
+            $totalItemPrice = $unitPrice * $quantity;
+
+            $orderItem = $order->items()->create([
+                'product_id' => $product->id,
+                'variation_id' => $variation?->id,
+                'product_name' => $product->name,
+                'variation_name' => $variation?->name,
+                'price' => $unitPrice,
+                'quantity' => $quantity,
+                'total_price' => $totalItemPrice,
+            ]);
+
+            // Create item options
+            if (!empty($item['options']) && is_array($item['options'])) {
+                foreach ($item['options'] as $opt) {
+                    $orderItem->options()->create([
+                        'attribute_name' => $opt['attribute_name'] ?? '',
+                        'option_name' => $opt['option_name'] ?? '',
+                        'price_modifier' => $opt['price_modifier'] ?? 0,
+                    ]);
+                }
+            }
+
+            // Create item custom fields
+            if (!empty($item['custom_fields']) && is_array($item['custom_fields'])) {
+                foreach ($item['custom_fields'] as $cf) {
+                    $orderItem->customFields()->create([
+                        'field_name' => $cf['field_name'] ?? '',
+                        'value' => is_scalar($cf['value']) ? (string) $cf['value'] : json_encode($cf['value']),
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper to create pickup, delivery, or legacy appointment records.
+     */
+    protected function createFulfillmentDetails(Order $order, array $validatedData): void
+    {
+        // Pickup details
+        if (!empty($validatedData['pickup_details'])) {
+            $pickup = $validatedData['pickup_details'];
+            $order->pickupDetails()->create([
+                'store_id' => $pickup['store_id'] ?? null,
+                'pickup_date' => $pickup['pickup_date'],
+                'pickup_time' => $pickup['pickup_time'],
+                'note' => $pickup['note'] ?? null,
+            ]);
+        }
+
+        // Delivery details
+        if (!empty($validatedData['delivery_details'])) {
+            $delivery = $validatedData['delivery_details'];
+            $order->deliveryDetails()->create([
+                'delivery_address' => $delivery['delivery_address'] ?? null,
+                'post_code' => $delivery['post_code'] ?? null,
+                'city' => $delivery['city'] ?? null,
+                'country' => $delivery['country'] ?? null,
+                'delivery_date' => $delivery['delivery_date'] ?? null,
+                'delivery_time' => $delivery['delivery_time'] ?? null,
+                'delivery_price' => $delivery['delivery_price'] ?? 0,
+                'note' => $delivery['note'] ?? null,
+            ]);
+        }
+
+        // Legacy appointments (if provided)
+        if (!empty($validatedData['appointments'])) {
+            $appointment = $validatedData['appointments'];
+            $order->appointments()->create([
+                'store_id' => $appointment['store_id'] ?? null,
+                'date' => $appointment['date'] ?? null,
+                'start_time' => $appointment['start_time'] ?? null,
+                'end_time' => $appointment['end_time'] ?? null,
+                'status' => OrderAppointment::STATUS_PENDING,
+                'duration' => $appointment['duration'] ?? 0,
+            ]);
+        }
     }
 }

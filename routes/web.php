@@ -12,6 +12,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentProviderController;
 use App\Http\Controllers\PostCategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
@@ -102,6 +103,7 @@ Route::middleware(['web', 'auth', HandleInertiaRequests::class])->group(function
             ->name('subscriptions.export');
 
         Route::resource('languages', LanguageController::class);
+        Route::resource('payment-providers', PaymentProviderController::class);
         Route::resource('pages', PageController::class);
         Route::resource('block-contents', BlockContentController::class);
 
