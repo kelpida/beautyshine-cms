@@ -78,13 +78,29 @@ export default function MediaSelectorModal({
         onClose();
     };
 
+    const getMediaSrc = (image: any) => {
+        const src = image?.url || image?.path || "";
+        if (!src) return "";
+        if (
+            src.startsWith("http://") ||
+            src.startsWith("https://") ||
+            src.startsWith("/") ||
+            src.startsWith("blob:") ||
+            src.startsWith("data:")
+        ) {
+            return src;
+        }
+        return `/storage/${src}`;
+    };
+
     const renderPreview = (image) => {
         const type = image.type || "image";
+        const src = getMediaSrc(image);
         switch (type) {
             case "image":
                 return (
                     <Image
-                        src={image?.url}
+                        src={src}
                         width="100%"
                         height={100}
                         style={{ objectFit: "cover" }}
@@ -94,7 +110,7 @@ export default function MediaSelectorModal({
             case "video":
                 return (
                     <video
-                        src={image?.url}
+                        src={src}
                         style={{
                             width: "100%",
                             height: "100px",

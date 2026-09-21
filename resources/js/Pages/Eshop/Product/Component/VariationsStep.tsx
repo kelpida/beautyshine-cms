@@ -2,16 +2,9 @@ import {
     Alert,
     Button,
     Card,
-    Col,
     Empty,
     Flex,
-    Form,
-    Input,
-    InputNumber,
-    Modal,
     Popconfirm,
-    Row,
-    Select,
     Space,
     Switch,
     Table,
@@ -27,21 +20,9 @@ import {
     ThunderboltOutlined,
     BranchesOutlined,
 } from "@ant-design/icons";
+import VariationModal, { VariationItem } from "./VariationModal";
 
 const { Text } = Typography;
-
-interface VariationItem {
-    id?: number;
-    sku: string;
-    name: string;
-    short_description?: string;
-    price: number | string;
-    sale_price?: number | string | null;
-    quantity?: number;
-    is_available?: boolean;
-    attribute_option_ids?: number[];
-    attribute_tags?: string[];
-}
 
 interface VariationsStepProps {
     data: any;
@@ -56,63 +37,43 @@ export default function VariationsStep({
 }: VariationsStepProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [form] = Form.useForm();
 
     const isConfigurable = data.product_type === "configurable";
     const variations: VariationItem[] = Array.isArray(data.variations)
         ? data.variations
         : [];
-    const productAttributes = Array.isArray(data.attributes) ? data.attributes : [];
+    const productAttributes = Array.isArray(data.attributes)
+        ? data.attributes
+        : [];
 
     const handleOpenAddModal = () => {
         setEditingIndex(null);
-        form.resetFields();
-        form.setFieldsValue({
-            price: data.base_price || 0,
-            quantity: 10,
-            is_available: true,
-        });
         setIsModalOpen(true);
     };
 
     const handleOpenEditModal = (record: VariationItem, index: number) => {
         setEditingIndex(index);
-        form.setFieldsValue({
-            name: record.name,
-            sku: record.sku,
-            price: record.price,
-            sale_price: record.sale_price,
-            quantity: record.quantity,
-            is_available: record.is_available ?? true,
-            attribute_tags: record.attribute_tags,
-        });
         setIsModalOpen(true);
     };
 
-    const handleModalSubmit = () => {
-        form.validateFields().then((values) => {
-            const updated = [...variations];
-            const newVar: VariationItem = {
-                ...values,
-                price: Number(values.price) || 0,
-                quantity: Number(values.quantity) || 0,
-                is_available: Boolean(values.is_available),
+    const handleSaveVariation = (
+        newVar: VariationItem,
+        index: number | null,
+    ) => {
+        const updated = [...variations];
+        if (index !== null && index >= 0) {
+            updated[index] = {
+                ...updated[index],
+                ...newVar,
             };
+            message.success("Variation updated");
+        } else {
+            updated.push(newVar);
+            message.success("Variation added");
+        }
 
-            if (editingIndex !== null) {
-                updated[editingIndex] = {
-                    ...updated[editingIndex],
-                    ...newVar,
-                };
-                message.success("Variation updated");
-            } else {
-                updated.push(newVar);
-                message.success("Variation added");
-            }
-
-            setData("variations", updated);
-            setIsModalOpen(false);
-        });
+        setData("variations", updated);
+        setIsModalOpen(false);
     };
 
     const handleDeleteVariation = (index: number) => {
@@ -148,6 +109,7 @@ export default function VariationsStep({
 
         const optionsArray = validAttrs.map((a: any) =>
             a.options.map((opt: any) => ({
+                attrId: a.attribute_id,
                 attrName: a.name,
                 optName: opt.name,
                 optId: opt.id,
@@ -162,8 +124,18 @@ export default function VariationsStep({
         const newVariations: VariationItem[] = combinations.map(
             (comb: any[], idx: number) => {
                 const names = comb.map((c) => c.optName).join(" / ");
-                const totalExtra = comb.reduce((sum, c) => sum + c.extraPrice, 0);
-                const skuCode = comb.map((c) => c.optName.substring(0, 2).toUpperCase()).join("-");
+                const totalExtra = comb.reduce(
+                    (sum, c) => sum + c.extraPrice,
+                    0,
+                );
+                const skuCode = comb
+                    .map((c) => c.optName.substring(0, 2).toUpperCase())
+                    .join("-");
+
+                const attrOptionsMap: Record<string, any> = {};
+                comb.forEach((c) => {
+                    attrOptionsMap[String(c.attrId)] = c.optId ?? c.optName;
+                });
 
                 return {
                     name: names,
@@ -172,21 +144,35 @@ export default function VariationsStep({
                     quantity: 10,
                     is_available: true,
                     attribute_tags: comb.map((c) => c.optName),
+                    attribute_option_ids: comb
+                        .map((c) => c.optId)
+                        .filter(Boolean),
+                    attribute_options: attrOptionsMap,
                 };
             },
         );
 
         setData("variations", newVariations);
-        message.success(`Generated ${newVariations.length} variations successfully!`);
+        message.success(
+            `Generated ${newVariations.length} variations successfully!`,
+        );
     };
 
     if (!isConfigurable) {
         return (
             <Card style={{ textAlign: "center", padding: "30px 20px" }}>
-                <BranchesOutlined style={{ fontSize: 42, color: "#bfbfbf", marginBottom: 16 }} />
+                <BranchesOutlined
+                    style={{ fontSize: 42, color: "#bfbfbf", marginBottom: 16 }}
+                />
                 <h3>Product Type is "Simple"</h3>
-                <Text type="secondary" style={{ display: "block", marginBottom: 20 }}>
-                    Simple products do not have variations. If this product comes in different sizes, shapes, or flavours with their own SKU, price, or inventory, change the Product Type to "Configurable" in Step 1 (General).
+                <Text
+                    type="secondary"
+                    style={{ display: "block", marginBottom: 20 }}
+                >
+                    Simple products do not have variations. If this product
+                    comes in different sizes, shapes, or flavours with their own
+                    SKU, price, or inventory, change the Product Type to
+                    "Configurable" in Step 1 (General).
                 </Text>
                 <Button
                     type="primary"
@@ -203,7 +189,9 @@ export default function VariationsStep({
             title: "Variation",
             dataIndex: "name",
             key: "name",
-            render: (name: string) => <span style={{ fontWeight: 600 }}>{name}</span>,
+            render: (name: string) => (
+                <span style={{ fontWeight: 600 }}>{name}</span>
+            ),
         },
         {
             title: "Attributes",
@@ -224,16 +212,25 @@ export default function VariationsStep({
             title: "SKU",
             dataIndex: "sku",
             key: "sku",
-            render: (sku: string) => <Tag color="default">{sku}</Tag>,
+            render: (sku: string) => (
+                <span style={{ fontFamily: "monospace" }}>{sku}</span>
+            ),
         },
         {
             title: "Price",
             dataIndex: "price",
             key: "price",
-            render: (price: number | string) => (
-                <span style={{ fontWeight: 600 }}>
-                    €{Number(price || 0).toFixed(2)}
-                </span>
+            render: (price: number | string, record: VariationItem) => (
+                <Space direction="vertical" size={0}>
+                    <span style={{ fontWeight: 600 }}>
+                        €{Number(price).toFixed(2)}
+                    </span>
+                    {Boolean(record.sale_price) && (
+                        <span style={{ color: "#ff4d4f", fontSize: 12 }}>
+                            Sale: €{Number(record.sale_price).toFixed(2)}
+                        </span>
+                    )}
+                </Space>
             ),
         },
         {
@@ -242,17 +239,17 @@ export default function VariationsStep({
             key: "quantity",
             render: (qty: number) => (
                 <Tag color={Number(qty) > 0 ? "green" : "red"}>
-                    {qty ?? 0} in stock
+                    {Number(qty) > 0 ? `${qty} in stock` : "Out of stock"}
                 </Tag>
             ),
         },
         {
-            title: "Status",
+            title: "Available",
             dataIndex: "is_available",
             key: "is_available",
-            render: (available: boolean, record: VariationItem, idx: number) => (
+            render: (avail: boolean, _: any, idx: number) => (
                 <Switch
-                    checked={available !== false}
+                    checked={Boolean(avail)}
                     onChange={(checked) => handleToggleAvailable(idx, checked)}
                     size="small"
                 />
@@ -261,13 +258,11 @@ export default function VariationsStep({
         {
             title: "Actions",
             key: "actions",
-            width: 110,
             render: (_: any, record: VariationItem, idx: number) => (
-                <Flex gap={8}>
+                <Space>
                     <Button
-                        type="text"
-                        icon={<EditOutlined />}
                         size="small"
+                        icon={<EditOutlined />}
                         onClick={() => handleOpenEditModal(record, idx)}
                     />
                     <Popconfirm
@@ -276,14 +271,9 @@ export default function VariationsStep({
                         okText="Yes"
                         cancelText="No"
                     >
-                        <Button
-                            danger
-                            type="text"
-                            icon={<DeleteOutlined />}
-                            size="small"
-                        />
+                        <Button size="small" danger icon={<DeleteOutlined />} />
                     </Popconfirm>
-                </Flex>
+                </Space>
             ),
         },
     ];
@@ -298,7 +288,13 @@ export default function VariationsStep({
                 style={{ marginBottom: 20 }}
             />
 
-            <Flex justify="space-between" align="center" style={{ marginBottom: 16 }} wrap="wrap" gap={12}>
+            <Flex
+                justify="space-between"
+                align="center"
+                style={{ marginBottom: 16 }}
+                wrap="wrap"
+                gap={12}
+            >
                 <div>
                     <Text strong style={{ fontSize: 16 }}>
                         Configured Variations ({variations.length})
@@ -337,70 +333,17 @@ export default function VariationsStep({
                 />
             )}
 
-            {/* Add / Edit Variation Modal */}
-            <Modal
-                title={editingIndex !== null ? "Edit Variation" : "Add Variation"}
+            <VariationModal
                 open={isModalOpen}
-                onOk={handleModalSubmit}
+                editingIndex={editingIndex}
+                record={editingIndex !== null ? variations[editingIndex] : null}
+                productAttributes={productAttributes}
+                basePrice={data.base_price || 0}
+                productSlug={data.slug || "prod"}
+                totalVariationsCount={variations.length}
                 onCancel={() => setIsModalOpen(false)}
-                okText="Save Variation"
-            >
-                <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-                    <Form.Item
-                        name="name"
-                        label="Variation Name"
-                        rules={[{ required: true, message: "Please enter variation name" }]}
-                    >
-                        <Input placeholder="e.g. Heart / Small / Vanilla" />
-                    </Form.Item>
-
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item
-                                name="sku"
-                                label="SKU"
-                                rules={[{ required: true, message: "Please enter SKU" }]}
-                            >
-                                <Input placeholder="e.g. VH-S" />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item
-                                name="quantity"
-                                label="Stock Quantity"
-                                rules={[{ required: true }]}
-                            >
-                                <InputNumber min={0} style={{ width: "100%" }} />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item
-                                name="price"
-                                label="Price (€)"
-                                rules={[{ required: true }]}
-                            >
-                                <InputNumber min={0} step={0.5} style={{ width: "100%" }} />
-                            </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                            <Form.Item name="sale_price" label="Sale Price (€)">
-                                <InputNumber min={0} step={0.5} style={{ width: "100%" }} />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-
-                    <Form.Item
-                        name="is_available"
-                        label="Is Available"
-                        valuePropName="checked"
-                    >
-                        <Switch />
-                    </Form.Item>
-                </Form>
-            </Modal>
+                onSave={handleSaveVariation}
+            />
         </div>
     );
 }

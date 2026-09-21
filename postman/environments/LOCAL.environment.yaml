@@ -1,0 +1,8 @@
+name: LOCAL
+values:
+  - key: URL
+    value: ''
+  - key: API_KEY
+    value: ''
+  - key: API_SECRET_KEY
+    value: ''

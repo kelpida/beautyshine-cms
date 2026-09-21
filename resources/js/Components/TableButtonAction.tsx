@@ -3,12 +3,22 @@ import { Button, Flex } from "antd";
 import { usePermissions } from "@/hooks/usePermissions";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
+interface TableButtonActionProps {
+    editAction?: () => void;
+    deleteAction?: () => void;
+    pagePermissions?: {
+        edit?: string;
+        delete?: string;
+    };
+    children?: React.ReactNode;
+}
+
 export default function TableButtonAction({
     editAction,
     deleteAction,
     pagePermissions,
     children,
-}: any) {
+}: TableButtonActionProps) {
     const can = usePermissions();
 
     const handleEdit = () => editAction();

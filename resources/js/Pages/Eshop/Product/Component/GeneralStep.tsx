@@ -3,6 +3,7 @@ import RichTextArea from "@/Components/Form/RichTextArea";
 import SelectField from "@/Components/Form/SelectField";
 import SwitchField from "@/Components/Form/SwitchField";
 import MultiLanguageFields from "@/Components/MultiLanguageFields";
+import { PRODUCT_TYPE_OPTIONS } from "@/enum/Product.enum";
 import { slugifyFields } from "@/lib/InputHelper";
 import { Col, Divider, Row } from "antd";
 import React from "react";
@@ -23,22 +24,48 @@ export default function GeneralStep({
     languages = [],
     isEditing,
 }: GeneralStepProps) {
+    console.log("🚀 ~ GeneralStep ~ data:", data);
     return (
         <div>
             <MultiLanguageFields
                 languages={languages}
                 value={data.translations}
                 onChange={(translations: any[]) => {
-                    setData("translations", translations);
-                    const en = translations?.find((t: any) => t.locale === "en");
-                    if (en) {
-                        if (en.name !== undefined) setData("name", en.name);
-                        if (en.description !== undefined) setData("description", en.description);
-                        if (en.short_description !== undefined) setData("short_description", en.short_description);
-                        if (en.allergens_text !== undefined) setData("allergens_text", en.allergens_text);
-                        if (en.delivery_info !== undefined) setData("delivery_info", en.delivery_info);
-                        if (en.product_care !== undefined) setData("product_care", en.product_care);
-                    }
+                    const en = translations?.find(
+                        (t: any) => t.locale === "en",
+                    );
+                    setData((prev: any) => ({
+                        ...prev,
+                        translations,
+                        ...(en
+                            ? {
+                                  name:
+                                      en.name !== undefined
+                                          ? en.name
+                                          : prev.name,
+                                  description:
+                                      en.description !== undefined
+                                          ? en.description
+                                          : prev.description,
+                                  short_description:
+                                      en.short_description !== undefined
+                                          ? en.short_description
+                                          : prev.short_description,
+                                  allergens_text:
+                                      en.allergens_text !== undefined
+                                          ? en.allergens_text
+                                          : prev.allergens_text,
+                                  delivery_info:
+                                      en.delivery_info !== undefined
+                                          ? en.delivery_info
+                                          : prev.delivery_info,
+                                  product_care:
+                                      en.product_care !== undefined
+                                          ? en.product_care
+                                          : prev.product_care,
+                              }
+                            : {}),
+                    }));
                 }}
             >
                 {(
@@ -109,7 +136,8 @@ export default function GeneralStep({
                                     value={
                                         isDefaultLanguage
                                             ? data.short_description || ""
-                                            : currentTranslation?.short_description || ""
+                                            : currentTranslation?.short_description ||
+                                              ""
                                     }
                                     onChange={(e: any) => {
                                         const val = e.target.value;
@@ -138,7 +166,8 @@ export default function GeneralStep({
                                     value={
                                         isDefaultLanguage
                                             ? data.description || ""
-                                            : currentTranslation?.description || ""
+                                            : currentTranslation?.description ||
+                                              ""
                                     }
                                     onChange={(val: any) => {
                                         updateField("description", val);
@@ -164,59 +193,80 @@ export default function GeneralStep({
 
                         <Row gutter={16}>
                             <Col xs={24} md={8}>
-                                <InputField
+                                <RichTextArea
                                     label={`Allergens Info (${locale.toUpperCase()})`}
                                     name={`translations[${locale}][allergens_text]`}
                                     value={
                                         isDefaultLanguage
                                             ? data.allergens_text || ""
-                                            : currentTranslation?.allergens_text || ""
+                                            : currentTranslation?.allergens_text ||
+                                              ""
                                     }
-                                    onChange={(e: any) => {
-                                        const val = e.target.value;
+                                    onChange={(val: any) => {
                                         updateField("allergens_text", val);
                                         if (isDefaultLanguage) {
                                             setData("allergens_text", val);
                                         }
                                     }}
+                                    error={
+                                        isDefaultLanguage
+                                            ? errors.allergens_text
+                                            : errors[
+                                                  `translations.${locale}.allergens_text`
+                                              ]
+                                    }
                                     placeholder="e.g. Contains gluten, eggs, dairy"
                                 />
                             </Col>
                             <Col xs={24} md={8}>
-                                <InputField
+                                <RichTextArea
                                     label={`Delivery Info (${locale.toUpperCase()})`}
                                     name={`translations[${locale}][delivery_info]`}
                                     value={
                                         isDefaultLanguage
                                             ? data.delivery_info || ""
-                                            : currentTranslation?.delivery_info || ""
+                                            : currentTranslation?.delivery_info ||
+                                              ""
                                     }
-                                    onChange={(e: any) => {
-                                        const val = e.target.value;
+                                    onChange={(val: any) => {
                                         updateField("delivery_info", val);
                                         if (isDefaultLanguage) {
                                             setData("delivery_info", val);
                                         }
                                     }}
+                                    error={
+                                        isDefaultLanguage
+                                            ? errors.delivery_info
+                                            : errors[
+                                                  `translations.${locale}.delivery_info`
+                                              ]
+                                    }
                                     placeholder="e.g. 24 hours advance notice required"
                                 />
                             </Col>
                             <Col xs={24} md={8}>
-                                <InputField
+                                <RichTextArea
                                     label={`Product Care (${locale.toUpperCase()})`}
                                     name={`translations[${locale}][product_care]`}
                                     value={
                                         isDefaultLanguage
                                             ? data.product_care || ""
-                                            : currentTranslation?.product_care || ""
+                                            : currentTranslation?.product_care ||
+                                              ""
                                     }
-                                    onChange={(e: any) => {
-                                        const val = e.target.value;
+                                    onChange={(val: any) => {
                                         updateField("product_care", val);
                                         if (isDefaultLanguage) {
                                             setData("product_care", val);
                                         }
                                     }}
+                                    error={
+                                        isDefaultLanguage
+                                            ? errors.product_care
+                                            : errors[
+                                                  `translations.${locale}.product_care`
+                                              ]
+                                    }
                                     placeholder="e.g. Keep refrigerated until serving"
                                 />
                             </Col>
@@ -233,15 +283,11 @@ export default function GeneralStep({
                         label="Product Type"
                         name="product_type"
                         value={data.product_type}
-                        onChange={(val: string) => setData("product_type", val)}
+                        onChange={(e) =>
+                            setData("product_type", e.target.value)
+                        }
                         error={errors.product_type}
-                        options={[
-                            { value: "simple", label: "Simple Product" },
-                            {
-                                value: "configurable",
-                                label: "Configurable (With Variations)",
-                            },
-                        ]}
+                        options={PRODUCT_TYPE_OPTIONS}
                     />
                 </Col>
 
@@ -280,7 +326,7 @@ export default function GeneralStep({
                         label="Publish Status"
                         name="status"
                         value={data.status}
-                        onChange={(val: string) => setData("status", val)}
+                        onChange={(e) => setData("status", e.target.value)}
                         error={errors.status}
                         options={[
                             { value: "public", label: "Public (Published)" },

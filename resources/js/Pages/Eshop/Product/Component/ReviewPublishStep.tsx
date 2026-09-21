@@ -36,12 +36,7 @@ export default function ReviewPublishStep({
     tags = [],
 }: ReviewPublishStepProps) {
     const activeLanguages =
-        languages.length > 0
-            ? languages
-            : [
-                  { code: "en", name: "English" },
-                  { code: "el", name: "Greek" },
-              ];
+        languages.length > 0 ? languages : [{ code: "en", name: "English" }];
 
     const getTranslationFor = (locale: string) => {
         if (locale === "en") {
@@ -72,7 +67,7 @@ export default function ReviewPublishStep({
         const hasSeo = Boolean(data.meta_title || data.meta_description);
         const hasMedia = Boolean(
             data.main_image_id ||
-                (data.gallery_images && data.gallery_images.length > 0),
+            (data.gallery_images && data.gallery_images.length > 0),
         );
         const hasCategories = Boolean(
             data.category_ids && data.category_ids.length > 0,
@@ -137,7 +132,9 @@ export default function ReviewPublishStep({
             title: "Section",
             dataIndex: "field",
             key: "field",
-            render: (text: string) => <span style={{ fontWeight: 600 }}>{text}</span>,
+            render: (text: string) => (
+                <span style={{ fontWeight: 600 }}>{text}</span>
+            ),
         },
         {
             title: "Status",
@@ -147,14 +144,20 @@ export default function ReviewPublishStep({
             render: (ready: boolean) =>
                 ready ? (
                     <Tag
-                        icon={<CheckCircleFilled style={{ color: "#52c41a" }} />}
+                        icon={
+                            <CheckCircleFilled style={{ color: "#52c41a" }} />
+                        }
                         color="success"
                     >
                         Ready
                     </Tag>
                 ) : (
                     <Tag
-                        icon={<ExclamationCircleFilled style={{ color: "#faad14" }} />}
+                        icon={
+                            <ExclamationCircleFilled
+                                style={{ color: "#faad14" }}
+                            />
+                        }
                         color="warning"
                     >
                         Incomplete
@@ -165,7 +168,9 @@ export default function ReviewPublishStep({
             title: "Details",
             dataIndex: "note",
             key: "note",
-            render: (note: string) => <span style={{ color: "#595959" }}>{note}</span>,
+            render: (note: string) => (
+                <span style={{ color: "#595959" }}>{note}</span>
+            ),
         },
     ];
 
@@ -186,7 +191,13 @@ export default function ReviewPublishStep({
                         <Text type="secondary" style={{ fontSize: 12 }}>
                             PRODUCT NAME
                         </Text>
-                        <div style={{ fontWeight: 700, fontSize: 16, marginTop: 4 }}>
+                        <div
+                            style={{
+                                fontWeight: 700,
+                                fontSize: 16,
+                                marginTop: 4,
+                            }}
+                        >
                             {data.name || "Untitled Product"}
                         </div>
                         <Tag color="purple" style={{ marginTop: 6 }}>
@@ -202,11 +213,21 @@ export default function ReviewPublishStep({
                         <Text type="secondary" style={{ fontSize: 12 }}>
                             PRICE
                         </Text>
-                        <div style={{ fontWeight: 700, fontSize: 18, color: "#f73859", marginTop: 4 }}>
+                        <div
+                            style={{
+                                fontWeight: 700,
+                                fontSize: 18,
+                                color: "#f73859",
+                                marginTop: 4,
+                            }}
+                        >
                             €{Number(data.base_price || 0).toFixed(2)}
                         </div>
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                            Status: <Tag color="blue">{(data.status || "draft").toUpperCase()}</Tag>
+                            Status:{" "}
+                            <Tag color="blue">
+                                {(data.status || "draft").toUpperCase()}
+                            </Tag>
                         </Text>
                     </Card>
                 </Col>
@@ -216,7 +237,13 @@ export default function ReviewPublishStep({
                         <Text type="secondary" style={{ fontSize: 12 }}>
                             CONFIGURED VARIATIONS
                         </Text>
-                        <div style={{ fontWeight: 700, fontSize: 18, marginTop: 4 }}>
+                        <div
+                            style={{
+                                fontWeight: 700,
+                                fontSize: 18,
+                                marginTop: 4,
+                            }}
+                        >
                             {data.product_type === "configurable"
                                 ? (data.variations || []).length
                                 : "N/A (Simple)"}
@@ -232,7 +259,13 @@ export default function ReviewPublishStep({
                         <Text type="secondary" style={{ fontSize: 12 }}>
                             ADD-ONS & CUSTOM FIELDS
                         </Text>
-                        <div style={{ fontWeight: 700, fontSize: 18, marginTop: 4 }}>
+                        <div
+                            style={{
+                                fontWeight: 700,
+                                fontSize: 18,
+                                marginTop: 4,
+                            }}
+                        >
                             {(data.addons || []).length} Add-ons
                         </div>
                         <Text type="secondary" style={{ fontSize: 12 }}>
@@ -250,7 +283,9 @@ export default function ReviewPublishStep({
                     label: (
                         <Space>
                             <GlobalOutlined />
-                            <span>{lang.name} ({lang.code.toUpperCase()})</span>
+                            <span>
+                                {lang.name} ({lang.code.toUpperCase()})
+                            </span>
                         </Space>
                     ),
                     children: (

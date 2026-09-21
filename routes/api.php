@@ -1,11 +1,9 @@
 <?php
 
-use App\Http\Controllers\AttributeCategoryController;
-use App\Http\Controllers\AttributeController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\IntegrationController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromoCodeController;
-use App\Http\Controllers\TransalteGoogleController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PatientAuthController;
@@ -16,11 +14,6 @@ use App\Http\Controllers\SubscriptionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
-// use App\Http\Controllers\PackageController;
-// use App\Http\Controllers\PackageStatusController;
-// use App\Http\Controllers\PackageCategoryController;
-// use App\Http\Controllers\PackageGenderController;
-// use App\Http\Controllers\PackageAgeController;
 use App\Http\Controllers\VivaWebhookController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\StoreController;
@@ -55,22 +48,11 @@ Route::middleware(['api.bearer'])->group(function () {
         Route::get('/integrations', [IntegrationController::class, 'publicIndex']);
         Route::get('/stores', [StoreController::class, 'publicIndex']);
         Route::get('/visitor-session', [VisitorSessionController::class, 'store']);
-        // Route::post('/package-log', [PackageLogController::class, 'store']);
 
-        /*
-        Route::prefix('/packages')->group(function () {
-            Route::get('/', [PackageController::class, 'publicIndex']);
-            Route::get('/categories', [PackageCategoryController::class, 'publicIndex']);
-            Route::get('/genders', [PackageGenderController::class, 'publicIndex']);
-            Route::get('/ages', [PackageAgeController::class, 'publicIndex']);
-            Route::get('/statuses', [PackageStatusController::class, 'publicIndex']);
-            Route::get('/attributes', [AttributeController::class, 'publicIndex']);
-            Route::get('/attributes-categories', [AttributeCategoryController::class, 'publicIndex']);
-
-            //must be end of the packages group
-            Route::get('{package}', [PackageController::class, 'publicShow']);
+        Route::prefix('/eshop')->group(function () {
+            Route::get('/products', [ProductController::class, 'publicIndex']);
+            Route::get('/products/{product}', [ProductController::class, 'publicShow']);
         });
-        */
 
         // Contact form routes
         Route::post('/contact', [ContactController::class, 'sendContactForm']);

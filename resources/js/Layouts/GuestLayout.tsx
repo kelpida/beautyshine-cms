@@ -19,17 +19,15 @@ export default function GuestLayout({ children }: GuestLayoutProps) {
                     style={{ minHeight: "100vh" }}
                 >
                     <Col xs={22} sm={16} md={12} lg={8}>
-                        <div style={{ textAlign: "center", marginBottom: 5 }}>
-                            <Link href="/">
-                                <ApplicationLogo
-                                    isImage
-                                    image={{
-                                        url: "/images/chameleon-text-logo.png",
-                                        alt: "Logo",
-                                    }}
-                                    width={"300px"}
-                                />
-                            </Link>
+                        <div className="flex justify-center mb-4">
+                            <ApplicationLogo
+                                isImage
+                                image={{
+                                    url: "/images/chameleon-text-logo.png",
+                                    alt: "Logo",
+                                }}
+                                width={"300px"}
+                            />
                         </div>
 
                         {children}

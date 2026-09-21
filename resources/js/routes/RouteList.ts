@@ -126,11 +126,13 @@ export const RouteList: Record<string, any> = {
     eshopAttributes: () => "/eshop-attributes",
     createEshopAttribute: () => "/eshop-attributes/create",
     editEshopAttribute: (id: string | number) => `/eshop-attributes/${id}/edit`,
+    updateEshopAttribute: (id: string | number) => `/eshop-attributes/${id}`,
     deleteEshopAttribute: (id: string | number) => `/eshop-attributes/${id}`,
 
     // eshop products
     eshopProducts: () => "/eshop-products",
     createEshopProduct: () => "/eshop-products/create",
     editEshopProduct: (id: string | number) => `/eshop-products/${id}/edit`,
+    updateEshopProduct: (id: string | number) => `/eshop-products/${id}`,
     deleteEshopProduct: (id: string | number) => `/eshop-products/${id}`,
 };

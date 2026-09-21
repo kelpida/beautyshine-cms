@@ -7,6 +7,7 @@ import { router } from "@inertiajs/react";
 import { Button, Flex, Input, Modal, Tag, message } from "antd";
 import React, { useEffect, useState } from "react";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import TableButtonAction from "@/Components/TableButtonAction";
 
 interface EshopAttributeItem {
     id: number;
@@ -132,7 +133,9 @@ export default function IndexAttributePage({
             key: "format_type",
             render: (formatType: string) => (
                 <Tag color={formatTypeColors[formatType] || "geekblue"}>
-                    {formatType ? formatType.toUpperCase().replace(/_/g, " ") : "SELECT"}
+                    {formatType
+                        ? formatType.toUpperCase().replace(/_/g, " ")
+                        : "SELECT"}
                 </Tag>
             ),
         },
@@ -155,24 +158,14 @@ export default function IndexAttributePage({
             key: "actions",
             width: 170,
             render: (_: any, record: EshopAttributeItem) => (
-                <Flex gap={8}>
-                    <Button
-                        type="primary"
-                        icon={<EditOutlined />}
-                        size="small"
-                        onClick={() => handleEdit(record)}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        size="small"
-                        onClick={() => handleDelete(record)}
-                    >
-                        Delete
-                    </Button>
-                </Flex>
+                <TableButtonAction
+                    editAction={() => handleEdit(record)}
+                    deleteAction={() => handleDelete(record)}
+                    pagePermissions={{
+                        edit: "eshop.attributes.edit",
+                        delete: "eshop.attributes.delete",
+                    }}
+                />
             ),
         },
     ];

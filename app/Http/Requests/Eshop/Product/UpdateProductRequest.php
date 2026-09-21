@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Eshop\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
@@ -17,20 +18,52 @@ class UpdateProductRequest extends FormRequest
 
     /**
      * Prepare the data for validation.
+     * Clean up empty translations, normalize default English values, and filter out 'en'.
      */
     protected function prepareForValidation(): void
     {
         $translations = $this->translations ?? $this->product_translations;
 
         if (is_array($translations)) {
+            $enTranslation = collect($translations)->firstWhere('locale', 'en');
+
+            $name = $this->name;
+            if ((empty($name) || trim($name) === '') && !empty($enTranslation['name'])) {
+                $name = trim($enTranslation['name']);
+            }
+
+            $slug = $this->slug;
+            if ((empty($slug) || trim($slug) === '') && !empty($name)) {
+                $slug = Str::slug($name);
+            }
+
+            $description = $this->description ?? $enTranslation['description'] ?? null;
+            $shortDescription = $this->short_description ?? $enTranslation['short_description'] ?? null;
+            $allergensText = $this->allergens_text ?? $enTranslation['allergens_text'] ?? null;
+            $deliveryInfo = $this->delivery_info ?? $enTranslation['delivery_info'] ?? null;
+            $productCare = $this->product_care ?? $enTranslation['product_care'] ?? null;
+
             $filtered = array_values(array_filter($translations, function ($item) {
-                return !empty(trim($item['name'] ?? ''));
+                return !empty(trim($item['name'] ?? '')) && ($item['locale'] ?? '') !== 'en';
             }));
 
             $this->merge([
+                'name' => $name,
+                'slug' => $slug,
+                'description' => $description,
+                'short_description' => $shortDescription,
+                'allergens_text' => $allergensText,
+                'delivery_info' => $deliveryInfo,
+                'product_care' => $productCare,
                 'translations' => $filtered,
                 'product_translations' => $filtered,
             ]);
+        } else {
+            if ((empty($this->slug) || trim($this->slug) === '') && !empty($this->name)) {
+                $this->merge([
+                    'slug' => Str::slug($this->name),
+                ]);
+            }
         }
     }
 
@@ -41,7 +74,8 @@ class UpdateProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        $product = $this->route('product');
+        $product = $this->route('eshop_product') ?? $this->route('product');
+        $productId = is_object($product) ? $product->id : $product;
 
         return [
             // General Information
@@ -50,7 +84,7 @@ class UpdateProductRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('products', 'slug')->ignore($product),
+                Rule::unique('products', 'slug')->ignore($productId),
             ],
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',

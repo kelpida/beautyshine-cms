@@ -4,9 +4,25 @@ import { ActiveLabel } from "@/enum/ActiveLabel.enum";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { RouteList } from "@/routes/RouteList";
 import { router } from "@inertiajs/react";
-import { Avatar, Button, Flex, Input, Modal, Select, Space, Tag, message } from "antd";
+import {
+    Avatar,
+    Button,
+    Flex,
+    Input,
+    Modal,
+    Select,
+    Space,
+    Tag,
+    message,
+} from "antd";
 import React, { useEffect, useState } from "react";
-import { EditOutlined, DeleteOutlined, ShoppingOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+    EditOutlined,
+    DeleteOutlined,
+    ShoppingOutlined,
+    PlusOutlined,
+} from "@ant-design/icons";
+import TableButtonAction from "@/Components/TableButtonAction";
 
 interface ProductTranslateItem {
     id: number;
@@ -55,14 +71,23 @@ export default function IndexProductPage({
     filters = {},
     languages = [],
 }: IndexProductPageProps) {
-    const rawData = Array.isArray(products)
-        ? products
-        : products?.data || [];
+    const rawData = Array.isArray(products) ? products : products?.data || [];
 
     const [productsData, setProductsData] = useState<ProductItem[]>(rawData);
     const [searchTerm, setSearchTerm] = useState(filters?.q || "");
-    const [selectedType, setSelectedType] = useState<string | undefined>(filters?.product_type);
-    const [selectedStatus, setSelectedStatus] = useState<string | undefined>(filters?.status);
+    const [selectedType, setSelectedType] = useState<string | undefined>(
+        filters?.product_type,
+    );
+    const [selectedStatus, setSelectedStatus] = useState<string | undefined>(
+        filters?.status,
+    );
+
+    const pagePermissions = {
+        edit: "eshop.product.edit",
+        delete: "eshop.product.delete",
+        create: "eshop.product.create",
+        view: "eshop.product.view",
+    };
 
     useEffect(() => {
         const updated = Array.isArray(products)
@@ -71,13 +96,26 @@ export default function IndexProductPage({
         setProductsData(updated);
     }, [products]);
 
-    const applyFilters = (params: { q?: string; status?: string; product_type?: string }) => {
+    const applyFilters = (params: {
+        q?: string;
+        status?: string;
+        product_type?: string;
+    }) => {
         router.get(
             RouteList.eshopProducts(),
             {
-                q: params.q !== undefined ? params.q || undefined : (searchTerm || undefined),
-                status: params.status !== undefined ? params.status || undefined : selectedStatus,
-                product_type: params.product_type !== undefined ? params.product_type || undefined : selectedType,
+                q:
+                    params.q !== undefined
+                        ? params.q || undefined
+                        : searchTerm || undefined,
+                status:
+                    params.status !== undefined
+                        ? params.status || undefined
+                        : selectedStatus,
+                product_type:
+                    params.product_type !== undefined
+                        ? params.product_type || undefined
+                        : selectedType,
             },
             { preserveState: true, replace: true },
         );
@@ -180,9 +218,17 @@ export default function IndexProductPage({
             width: 110,
             render: (_: any, record: ProductItem) => (
                 <div>
-                    <span style={{ fontWeight: 600 }}>{formatPrice(record.base_price)}</span>
+                    <span style={{ fontWeight: 600 }}>
+                        {formatPrice(record.base_price)}
+                    </span>
                     {record.sale_price && (
-                        <div style={{ fontSize: 11, color: "#f5222d", textDecoration: "line-through" }}>
+                        <div
+                            style={{
+                                fontSize: 11,
+                                color: "#f5222d",
+                                textDecoration: "line-through",
+                            }}
+                        >
                             {formatPrice(record.sale_price)}
                         </div>
                     )}
@@ -206,9 +252,14 @@ export default function IndexProductPage({
             key: "translations",
             width: 140,
             render: (_: any, record: ProductItem) => {
-                const systemLocales = languages.length > 0 ? languages.map((l) => l.code) : ["en", "el"];
+                const systemLocales =
+                    languages.length > 0
+                        ? languages.map((l) => l.code)
+                        : ["en"];
                 const translatedLocales = new Set(
-                    (record.translates || []).map((t) => t.locale.toLowerCase()),
+                    (record.translates || []).map((t) =>
+                        t.locale.toLowerCase(),
+                    ),
                 );
                 // English is default
                 translatedLocales.add("en");
@@ -216,7 +267,9 @@ export default function IndexProductPage({
                 return (
                     <Space size={4}>
                         {systemLocales.map((code) => {
-                            const isTranslated = translatedLocales.has(code.toLowerCase());
+                            const isTranslated = translatedLocales.has(
+                                code.toLowerCase(),
+                            );
                             return (
                                 <Tag
                                     key={code}
@@ -242,24 +295,11 @@ export default function IndexProductPage({
             key: "actions",
             width: 160,
             render: (_: any, record: ProductItem) => (
-                <Flex gap={8}>
-                    <Button
-                        type="primary"
-                        icon={<EditOutlined />}
-                        size="small"
-                        onClick={() => handleEdit(record)}
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        size="small"
-                        onClick={() => handleDelete(record)}
-                    >
-                        Delete
-                    </Button>
-                </Flex>
+                <TableButtonAction
+                    pagePermissions={pagePermissions}
+                    editAction={() => handleEdit(record)}
+                    deleteAction={() => handleDelete(record)}
+                />
             ),
         },
     ];

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,6 +12,15 @@ return new class extends Migration
     {
         Schema::create('product_variations', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->string('sku')->unique();
+            $table->string('name');
+            $table->text('short_description')->nullable();
+            $table->decimal('price', 15, 2);
+            $table->decimal('sale_price', 15, 2)->nullable();
+            $table->integer('quantity')->default(0);
+            $table->boolean('is_available')->default(true);
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
     }
@@ -23,5 +31,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('product_variations');
+        Schema::dropIfExists('product_variation_translates');
     }
 };

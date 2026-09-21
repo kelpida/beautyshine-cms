@@ -22,9 +22,14 @@ class UpdateAttributeRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if (is_array($this->translations)) {
+            $enTranslation = collect($this->translations)->firstWhere('locale', 'en');
+            if ((empty($this->name) || trim($this->name) === '') && !empty($enTranslation['name'])) {
+                $this->merge(['name' => trim($enTranslation['name'])]);
+            }
+
             $this->merge([
                 'translations' => array_values(array_filter($this->translations, function ($item) {
-                    return !empty(trim($item['name'] ?? ''));
+                    return !empty(trim($item['name'] ?? '')) && ($item['locale'] ?? '') !== 'en';
                 })),
             ]);
         }

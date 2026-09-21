@@ -2,6 +2,7 @@ import PageHeaderActions from "@/Components/PageHeaderActions";
 import PopupFormMessage from "@/Components/PopupFormMessage";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { RouteList } from "@/routes/RouteList";
+import { slugifyFields } from "@/lib/InputHelper";
 import { useForm, router } from "@inertiajs/react";
 import { Button, Card, Divider, Flex, Form, Space, Steps, message } from "antd";
 import React, { useState } from "react";
@@ -32,6 +33,7 @@ interface FormProductPageProps {
     categories?: any[];
     tags?: any[];
     availableAttributes?: any[];
+    availableImages?: any[];
     nextSortOrder?: number;
 }
 
@@ -41,6 +43,7 @@ export default function FormProductPage({
     categories = [],
     tags = [],
     availableAttributes = [],
+    availableImages = [],
     nextSortOrder = 1,
 }: FormProductPageProps) {
     const isEditing = Boolean(product && product.id);
@@ -68,21 +71,19 @@ export default function FormProductPage({
 
     // Initial translation list
     const prepareInitialTranslations = () => {
-        if (!product) return [];
-
         const translations: any[] = [
             {
                 locale: "en",
-                name: product.name || "",
-                description: product.description || "",
-                short_description: product.short_description || "",
-                allergens_text: product.allergens_text || "",
-                delivery_info: product.delivery_info || "",
-                product_care: product.product_care || "",
+                name: product?.name || "",
+                description: product?.description || "",
+                short_description: product?.short_description || "",
+                allergens_text: product?.allergens_text || "",
+                delivery_info: product?.delivery_info || "",
+                product_care: product?.product_care || "",
             },
         ];
 
-        if (Array.isArray(product.translates)) {
+        if (Array.isArray(product?.translates)) {
             product.translates.forEach((trans: any) => {
                 if (trans.locale !== "en") {
                     translations.push({
@@ -127,11 +128,14 @@ export default function FormProductPage({
             id: v.id,
             sku: v.sku,
             name: v.name,
-            short_description: v.sort_description,
+            short_description: v.short_description ?? v.sort_description ?? "",
             price: v.price,
             sale_price: v.sale_price,
             quantity: v.quantity,
             is_available: Boolean(v.is_available),
+            attribute_option_ids: (v.attribute_options || []).map(
+                (ao: any) => ao.id,
+            ),
             attribute_tags: (v.attribute_options || []).map(
                 (ao: any) => ao.name,
             ),
@@ -167,7 +171,15 @@ export default function FormProductPage({
         }));
     };
 
-    const { data, setData, post, put, processing, errors } = useForm({
+    const {
+        data,
+        setData,
+        post: submitPost,
+        put,
+        transform,
+        processing,
+        errors,
+    } = useForm({
         name: product?.name || "",
         slug: product?.slug || "",
         description: product?.description || "",
@@ -216,21 +228,57 @@ export default function FormProductPage({
             (t) => t.locale === "en",
         );
 
-        const payload = {
-            ...data,
-            name: englishTranslation?.name || data.name,
-            status: finalStatus || data.status || "public",
+        const statusToSubmit = finalStatus || data.status || "public";
+        const nameToSubmit =
+            data.name?.trim() || englishTranslation?.name?.trim() || "";
+        const slugToSubmit =
+            data.slug?.trim() ||
+            (nameToSubmit ? slugifyFields(nameToSubmit) : "");
+
+        transform((currentData: any) => ({
+            ...currentData,
+            name: nameToSubmit,
+            slug: slugToSubmit,
+            status: statusToSubmit,
+            // Exclude 'en' from translations payload so it's stored on the root entity
+            translations: (currentData.translations || []).filter(
+                (t: any) => t.locale !== "en" && Boolean(t.name?.trim()),
+            ),
+        }));
+
+        const options = {
+            preserveScroll: true,
+            onError: (err: any) => {
+                console.error("Product submission errors:", err);
+                const firstErr = Object.values(err)[0] as string;
+                if (firstErr) {
+                    message.error(firstErr);
+                } else {
+                    message.error(
+                        "Validation failed. Please check the required fields.",
+                    );
+                }
+            },
+            onSuccess: () => {
+                message.success(
+                    isEditing
+                        ? "Product updated successfully!"
+                        : "Product created successfully!",
+                );
+            },
         };
 
-        const targetUrl = isEditing
-            ? RouteList.editEshopProduct?.(product!.id) ||
-              `/eshop-products/${product!.id}`
-            : RouteList.eshopProducts?.() || "/eshop-products";
-
         if (isEditing) {
-            put(targetUrl);
+            put(
+                RouteList.updateEshopProduct?.(product!.id) ||
+                    `/eshop-products/${product!.id}`,
+                options,
+            );
         } else {
-            post(targetUrl);
+            submitPost(
+                RouteList.eshopProducts?.() || "/eshop-products",
+                options,
+            );
         }
     };
 
@@ -238,8 +286,6 @@ export default function FormProductPage({
         if (currentStep < stepsList.length - 1) {
             setCurrentStep(currentStep + 1);
             window.scrollTo({ top: 0, behavior: "smooth" });
-        } else {
-            handleSubmit("public");
         }
     };
 
@@ -252,7 +298,7 @@ export default function FormProductPage({
 
     return (
         <div>
-            <PopupFormMessage />
+            <PopupFormMessage errors={errors} />
 
             <PageHeaderActions
                 title={
@@ -260,13 +306,23 @@ export default function FormProductPage({
                         ? `Edit Product: ${product?.name || ""}`
                         : "Add New Product"
                 }
-                buttonText="Back to Products"
-                href={RouteList.eshopProducts()}
+                backName="Back to Products"
+                backAction={RouteList.eshopProducts()}
+                children={
+                    <Button
+                        icon={<SaveOutlined />}
+                        type="primary"
+                        htmlType="button"
+                        loading={processing}
+                        onClick={() => handleSubmit("draft")}
+                    >
+                        Save Draft
+                    </Button>
+                }
             />
 
             <Form
                 layout="vertical"
-                onFinish={() => handleSubmit()}
                 initialValues={data}
             >
                 <Card
@@ -308,6 +364,7 @@ export default function FormProductPage({
                                 setMainImages={setMainImages}
                                 galleryImages={galleryImages}
                                 setGalleryImages={setGalleryImages}
+                                availableImages={availableImages}
                             />
                         )}
 
@@ -361,49 +418,46 @@ export default function FormProductPage({
                         wrap="wrap"
                         gap={12}
                     >
-                        <Space>
+                        <Button
+                            key="btn-back"
+                            htmlType="button"
+                            icon={<ArrowLeftOutlined />}
+                            disabled={currentStep === 0}
+                            onClick={handleBack}
+                        >
+                            Back
+                        </Button>
+
+                        {currentStep < stepsList.length - 1 ? (
                             <Button
-                                icon={<SaveOutlined />}
+                                key="btn-next"
+                                type="primary"
+                                htmlType="button"
+                                onClick={handleNext}
+                            >
+                                <span>Save & Continue</span>
+                                <ArrowRightOutlined />
+                            </Button>
+                        ) : (
+                            <Button
+                                key="btn-publish"
+                                type="primary"
+                                htmlType="button"
+                                size="large"
                                 loading={processing}
-                                onClick={() => handleSubmit("draft")}
+                                icon={<CheckCircleOutlined />}
+                                onClick={() => handleSubmit("public")}
+                                style={{
+                                    backgroundColor: "#f73859",
+                                    borderColor: "#f73859",
+                                    padding: "0 28px",
+                                }}
                             >
-                                Save Draft
+                                {isEditing
+                                    ? "Update & Publish Product"
+                                    : "Publish Product"}
                             </Button>
-                        </Space>
-
-                        <Space>
-                            <Button
-                                icon={<ArrowLeftOutlined />}
-                                disabled={currentStep === 0}
-                                onClick={handleBack}
-                            >
-                                Back
-                            </Button>
-
-                            {currentStep < stepsList.length - 1 ? (
-                                <Button type="primary" onClick={handleNext}>
-                                    <span>Save & Continue</span>
-                                    <ArrowRightOutlined />
-                                </Button>
-                            ) : (
-                                <Button
-                                    type="primary"
-                                    htmlType="submit"
-                                    size="large"
-                                    loading={processing}
-                                    icon={<CheckCircleOutlined />}
-                                    style={{
-                                        backgroundColor: "#f73859",
-                                        borderColor: "#f73859",
-                                        padding: "0 28px",
-                                    }}
-                                >
-                                    {isEditing
-                                        ? "Update & Publish Product"
-                                        : "Publish Product"}
-                                </Button>
-                            )}
-                        </Space>
+                        )}
                     </Flex>
                 </Card>
             </Form>

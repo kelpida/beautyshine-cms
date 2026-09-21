@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\Eshop\Product\PublicSingleProductResource;
 use App\Models\Eshop\Product;
 use App\Models\Eshop\EshopCategory;
 use App\Models\Eshop\Tag;
 use App\Models\Eshop\Attribute;
 use App\Models\Language;
+use App\Models\UploadFile;
 use App\Http\Requests\Eshop\Product\StoreProductRequest;
 use App\Http\Requests\Eshop\Product\UpdateProductRequest;
 use Illuminate\Http\Request;
@@ -49,6 +51,101 @@ class ProductController extends Controller
         ]);
     }
 
+    public function publicIndex(Request $request)
+    {
+        $query = Product::query()
+            ->where('is_active', true)
+            ->where('status', 'public')
+            ->with([
+                'mainImage',
+                'galleryImages',
+                'translates',
+                'categories.translates',
+                'tags.translates',
+                'productAttributes.attribute',
+                'productAttributes.options.translates',
+                'variations.attributeOptions',
+                'variations.translates',
+                'addons.translates',
+                'customFields.translates',
+                'seo.image',
+            ]);
+        // sort by price asc, price desc, newest, oldest, sort_order
+        $sort = $request->query('sort') ?? $request->query('sort_by');
+
+        switch ($sort) {
+            case 'price_asc':
+            case 'price_low_high':
+            case 'price_low_to_high':
+            case 'low-high':
+            case 'low_to_high':
+                $query->orderByRaw('COALESCE(sale_price, base_price) ASC')
+                    ->orderBy('id', 'desc');
+                break;
+
+            case 'price_desc':
+            case 'price_high_low':
+            case 'price_high_to_low':
+            case 'high-low':
+            case 'high_to_low':
+                $query->orderByRaw('COALESCE(sale_price, base_price) DESC')
+                    ->orderBy('id', 'desc');
+                break;
+
+            case 'newest':
+            case 'latest':
+            case 'date_desc':
+                $query->orderBy('created_at', 'desc')
+                    ->orderBy('id', 'desc');
+                break;
+
+            case 'oldest':
+            case 'date_asc':
+                $query->orderBy('created_at', 'asc')
+                    ->orderBy('id', 'asc');
+                break;
+
+            case 'sort_order':
+            case 'popular':
+            default:
+                $query->orderBy('sort_order', 'asc')
+                    ->orderBy('id', 'desc');
+                break;
+        }
+
+        $filter = $request->query('filter') ?? [];
+
+        if (!empty($filter['categories'])) {
+            $query->whereHas('categories', function ($q) use ($filter) {
+                $q->whereIn('id', $filter['categories']);
+            });
+        }
+
+        if (!empty($filter['tags'])) {
+            $query->whereHas('tags', function ($q) use ($filter) {
+                $q->whereIn('id', $filter['tags']);
+            });
+        }
+
+        // filters by price
+        if (!empty($filter['price'])) {
+            $query->where('base_price', '>=', $filter['price']['min'])
+                ->where('base_price', '<=', $filter['price']['max']);
+        }
+
+        // filters by attributes
+        if (!empty($filter['attributes'])) {
+            $query->whereHas('productAttributes', function ($q) use ($filter) {
+                $q->whereIn('attribute_id', $filter['attributes']);
+            });
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+        $products = $query->paginate($perPage)->withQueryString();
+
+        return PublicSingleProductResource::collection($products);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -59,12 +156,15 @@ class ProductController extends Controller
         $tags = Tag::query()->with('translates')->orderBy('sort_order')->get();
         $attributes = Attribute::query()->with('translates')->orderBy('sort_order')->get();
 
+        $availableImages = UploadFile::where('type', 'image')->latest()->get();
+
         return Inertia::render('Eshop/Product/FormProductPage', [
             'product' => null,
             'languages' => $languages,
             'categories' => $categories,
             'tags' => $tags,
             'availableAttributes' => $attributes,
+            'availableImages' => $availableImages,
             'nextSortOrder' => Product::nextSortOrder(),
         ]);
     }
@@ -76,7 +176,7 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
 
-        $product = DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated) {
             $product = Product::create([
                 'name' => $validated['name'],
                 'slug' => $validated['slug'],
@@ -140,7 +240,8 @@ class ProductController extends Controller
             // Attributes & Options
             if (!empty($validated['attributes']) && is_array($validated['attributes'])) {
                 foreach ($validated['attributes'] as $attrIndex => $attrData) {
-                    if (empty($attrData['attribute_id'])) continue;
+                    if (empty($attrData['attribute_id']))
+                        continue;
                     $pAttr = $product->productAttributes()->create([
                         'attribute_id' => $attrData['attribute_id'],
                         'is_required' => $attrData['is_required'] ?? false,
@@ -148,7 +249,8 @@ class ProductController extends Controller
                     ]);
                     if (!empty($attrData['options']) && is_array($attrData['options'])) {
                         foreach ($attrData['options'] as $optIndex => $optData) {
-                            if (empty($optData['name'])) continue;
+                            if (empty($optData['name']))
+                                continue;
                             $pOpt = $pAttr->options()->create([
                                 'name' => $optData['name'],
                                 'extra_price' => $optData['extra_price'] ?? 0,
@@ -173,11 +275,12 @@ class ProductController extends Controller
             // Variations
             if (!empty($validated['variations']) && is_array($validated['variations'])) {
                 foreach ($validated['variations'] as $varData) {
-                    if (empty($varData['sku']) || empty($varData['name'])) continue;
+                    if (empty($varData['sku']) || empty($varData['name']))
+                        continue;
                     $variation = $product->variations()->create([
                         'sku' => $varData['sku'],
                         'name' => $varData['name'],
-                        'sort_description' => $varData['short_description'] ?? null,
+                        'short_description' => $varData['short_description'] ?? null,
                         'price' => $varData['price'] ?? 0,
                         'sale_price' => $varData['sale_price'] ?? null,
                         'quantity' => $varData['quantity'] ?? 0,
@@ -203,7 +306,8 @@ class ProductController extends Controller
             // Add-ons
             if (!empty($validated['addons']) && is_array($validated['addons'])) {
                 foreach ($validated['addons'] as $addIndex => $addonData) {
-                    if (empty($addonData['name'])) continue;
+                    if (empty($addonData['name']))
+                        continue;
                     $addon = $product->addons()->create([
                         'name' => $addonData['name'],
                         'description' => $addonData['description'] ?? null,
@@ -230,7 +334,8 @@ class ProductController extends Controller
             // Custom Fields
             if (!empty($validated['custom_fields']) && is_array($validated['custom_fields'])) {
                 foreach ($validated['custom_fields'] as $cfIndex => $cfData) {
-                    if (empty($cfData['name'])) continue;
+                    if (empty($cfData['name']))
+                        continue;
                     $cf = $product->customFields()->create([
                         'name' => $cfData['name'],
                         'key' => $cfData['key'] ?? Str::slug($cfData['name'], '_') . '_' . $cfIndex,
@@ -268,6 +373,27 @@ class ProductController extends Controller
         return redirect()->route('eshop-products.edit', $product->id);
     }
 
+    public function publicShow(Product $product)
+    {
+        $product->load([
+            'translates',
+            'mainImage',
+            'galleryImages',
+            'productImages.image',
+            'categories',
+            'tags',
+            'productAttributes.attribute',
+            'productAttributes.options.translates',
+            'variations.attributeOptions',
+            'variations.translates',
+            'addons.translates',
+            'customFields.translates',
+            'seo',
+        ]);
+
+        return new PublicSingleProductResource($product);
+    }
+
     /**
      * Show the form for editing the specified resource.
      */
@@ -295,6 +421,7 @@ class ProductController extends Controller
             'categories' => EshopCategory::query()->with('translates')->orderBy('sort_order')->get(),
             'tags' => Tag::query()->with('translates')->orderBy('sort_order')->get(),
             'availableAttributes' => Attribute::query()->with('translates')->orderBy('sort_order')->get(),
+            'availableImages' => UploadFile::where('type', 'image')->latest()->get(),
             'nextSortOrder' => $eshop_product->sort_order,
         ]);
     }
@@ -375,7 +502,8 @@ class ProductController extends Controller
             if (isset($validated['attributes']) && is_array($validated['attributes'])) {
                 $eshop_product->productAttributes()->delete();
                 foreach ($validated['attributes'] as $attrIndex => $attrData) {
-                    if (empty($attrData['attribute_id'])) continue;
+                    if (empty($attrData['attribute_id']))
+                        continue;
                     $pAttr = $eshop_product->productAttributes()->create([
                         'attribute_id' => $attrData['attribute_id'],
                         'is_required' => $attrData['is_required'] ?? false,
@@ -383,7 +511,8 @@ class ProductController extends Controller
                     ]);
                     if (!empty($attrData['options']) && is_array($attrData['options'])) {
                         foreach ($attrData['options'] as $optIndex => $optData) {
-                            if (empty($optData['name'])) continue;
+                            if (empty($optData['name']))
+                                continue;
                             $pOpt = $pAttr->options()->create([
                                 'name' => $optData['name'],
                                 'extra_price' => $optData['extra_price'] ?? 0,
@@ -409,11 +538,12 @@ class ProductController extends Controller
             if (isset($validated['variations']) && is_array($validated['variations'])) {
                 $eshop_product->variations()->delete();
                 foreach ($validated['variations'] as $varData) {
-                    if (empty($varData['sku']) || empty($varData['name'])) continue;
+                    if (empty($varData['sku']) || empty($varData['name']))
+                        continue;
                     $variation = $eshop_product->variations()->create([
                         'sku' => $varData['sku'],
                         'name' => $varData['name'],
-                        'sort_description' => $varData['short_description'] ?? null,
+                        'short_description' => $varData['short_description'] ?? null,
                         'price' => $varData['price'] ?? 0,
                         'sale_price' => $varData['sale_price'] ?? null,
                         'quantity' => $varData['quantity'] ?? 0,
@@ -440,7 +570,8 @@ class ProductController extends Controller
             if (isset($validated['addons']) && is_array($validated['addons'])) {
                 $eshop_product->addons()->delete();
                 foreach ($validated['addons'] as $addIndex => $addonData) {
-                    if (empty($addonData['name'])) continue;
+                    if (empty($addonData['name']))
+                        continue;
                     $addon = $eshop_product->addons()->create([
                         'name' => $addonData['name'],
                         'description' => $addonData['description'] ?? null,
@@ -468,7 +599,8 @@ class ProductController extends Controller
             if (isset($validated['custom_fields']) && is_array($validated['custom_fields'])) {
                 $eshop_product->customFields()->delete();
                 foreach ($validated['custom_fields'] as $cfIndex => $cfData) {
-                    if (empty($cfData['name'])) continue;
+                    if (empty($cfData['name']))
+                        continue;
                     $cf = $eshop_product->customFields()->create([
                         'name' => $cfData['name'],
                         'key' => $cfData['key'] ?? Str::slug($cfData['name'], '_') . '_' . $cfIndex,

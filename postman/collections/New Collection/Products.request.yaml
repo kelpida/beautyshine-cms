@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{URL}}/eshop/products"
+method: GET
+scripts:
+  - type: beforeRequest
+    code: ""
+    language: text/javascript
+order: 1789973164217

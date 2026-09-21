@@ -1,25 +1,42 @@
 import React from "react";
 import { Form, Select } from "antd";
-import { useState } from "react";
 
-export interface SelectFieldProps {
+export interface SelectChangeEvent<T = any> {
+    target: {
+        name?: string;
+        value: T;
+    };
+}
+
+export interface BaseSelectFieldProps {
     label?: React.ReactNode;
     name?: string;
-    value?: any;
-    onChange?: (val: any) => void;
     options?: Array<{ label: React.ReactNode; value: any }>;
     error?: any;
     required?: boolean;
     showSearch?: boolean;
     className?: string;
     placeholder?: string;
-    mode?: "multiple" | "tags";
     [key: string]: any;
 }
 
+export interface SingleSelectFieldProps extends BaseSelectFieldProps {
+    mode?: undefined;
+    value?: any;
+    onChange?: (e: SelectChangeEvent<any>) => void;
+}
+
+export interface MultiSelectFieldProps extends BaseSelectFieldProps {
+    mode: "multiple" | "tags";
+    value?: any[];
+    onChange?: (e: SelectChangeEvent<any[]>) => void;
+}
+
+export type SelectFieldProps = SingleSelectFieldProps | MultiSelectFieldProps;
+
 export default function SelectField({
     label,
-    name,
+    name = "",
     value,
     onChange,
     options = [],
@@ -30,9 +47,11 @@ export default function SelectField({
     placeholder = "Select an option",
     mode,
 }: SelectFieldProps) {
+    const isMulti = mode === "multiple" || mode === "tags";
     // Set default value based on mode
-    const defaultValue = mode === "multiple" ? [] : "";
+    const defaultValue = isMulti ? [] : "";
     const selectValue = value !== undefined ? value : defaultValue;
+
     return (
         <Form.Item
             label={label}
@@ -44,14 +63,15 @@ export default function SelectField({
             <Select
                 value={selectValue}
                 onChange={(val) =>
-                    onChange?.(
-                        mode === "multiple"
-                            ? val
-                            : { target: { name, value: val } },
-                    )
+                    onChange?.({
+                        target: {
+                            name,
+                            value: val,
+                        },
+                    } as any)
                 }
                 mode={mode}
-                placeholder={mode === "multiple" ? placeholder : undefined}
+                placeholder={isMulti ? placeholder : undefined}
                 filterOption={
                     showSearch
                         ? (input, option: any) =>
@@ -62,7 +82,9 @@ export default function SelectField({
                 }
                 showSearch={showSearch}
             >
-                {!mode && <Select.Option value="">{placeholder}</Select.Option>}
+                {!isMulti && (
+                    <Select.Option value="">{placeholder}</Select.Option>
+                )}
                 {options.map((opt) => (
                     <Select.Option key={opt.value} value={opt.value}>
                         {opt.label}

@@ -14,6 +14,7 @@ interface MediaStepProps {
     setMainImages: (imgs: any[]) => void;
     galleryImages: any[];
     setGalleryImages: (imgs: any[]) => void;
+    availableImages?: any[];
 }
 
 export default function MediaStep({
@@ -24,6 +25,7 @@ export default function MediaStep({
     setMainImages,
     galleryImages,
     setGalleryImages,
+    availableImages = [],
 }: MediaStepProps) {
     const handleMainImageChange = (images: any[]) => {
         setMainImages(images);
@@ -66,7 +68,8 @@ export default function MediaStep({
                         <MediaSelector
                             label="Select Main Image"
                             maxCount={1}
-                            existingImages={mainImages}
+                            images={mainImages}
+                            existingImages={availableImages}
                             setImages={handleMainImageChange}
                             buttonText="Choose Main Image"
                         />
@@ -97,7 +100,8 @@ export default function MediaStep({
                         <MediaSelector
                             label="Select Gallery Photos"
                             maxCount={10}
-                            existingImages={galleryImages}
+                            images={galleryImages}
+                            existingImages={availableImages}
                             setImages={handleGalleryImagesChange}
                             buttonText="Add Gallery Images"
                         />

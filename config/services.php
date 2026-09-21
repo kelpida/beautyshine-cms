@@ -37,6 +37,7 @@ return [
 
     'public_api' => [
         'key' => env('PUBLIC_API_KEY'),
+        'secret' => env('PUBLIC_API_SECRET'),
     ],
 
     'google' => [

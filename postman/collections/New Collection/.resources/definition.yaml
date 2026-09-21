@@ -1,0 +1,147 @@
+$kind: collection
+scripts:
+  - type: http:beforeRequest
+    code: "const apiKey = pm.environment.get(\"API_KEY\");\r
+
+      const apiSecret = pm.environment.get(\"API_SECRET_KEY\");\r
+
+      \r
+
+      const timestamp = Math.floor(Date.now() / 1000).toString();\r
+
+      \r
+
+      // Generate random nonce\r
+
+      const nonce = pm.variables.replaceIn(\"{{$guid}}\");\r
+
+      \r
+
+      // HTTP method\r
+
+      const method = pm.request.method.toUpperCase();\r
+
+      \r
+
+      // Laravel path after resolving the full URL\r
+
+      const resolvedUrl = pm.variables.replaceIn(pm.request.url.toString());\r
+
+      const path = new URL(resolvedUrl).pathname;\r
+
+      \r
+
+      // Get request body\r
+
+      let body = \"\";\r
+
+      \r
+
+      if (\r
+
+      \    pm.request.body &&\r
+
+      \    pm.request.body.mode === \"raw\" &&\r
+
+      \    pm.request.body.raw\r
+
+      ) {\r
+
+      \    body = pm.variables.replaceIn(pm.request.body.raw);\r
+
+      }\r
+
+      \r
+
+      // SHA256 body\r
+
+      const bodyHash = CryptoJS.SHA256(body).toString(CryptoJS.enc.Hex);\r
+
+      \r
+
+      // Must match Laravel exactly (query string is a canonical field)\r
+
+      const queryString = pm.request.url.query\r
+
+      \    .filter(param => !param.disabled)\r
+
+      \    .map(param => `${pm.variables.replaceIn(param.key)}=${pm.variables.replaceIn(param.value || \"\")}`)\r
+
+      \    .join(\"&\");\r
+
+      const payload = [\r
+
+      \    method,\r
+
+      \    path,\r
+
+      \    queryString,\r
+
+      \    bodyHash,\r
+
+      \    timestamp,\r
+
+      \    nonce\r
+
+      ].join(\"\\n\");\r
+
+      \r
+
+      // HMAC SHA256\r
+
+      const signature = CryptoJS.HmacSHA256(\r
+
+      \    payload,\r
+
+      \    apiSecret\r
+
+      ).toString(CryptoJS.enc.Hex);\r
+
+      \r
+
+      // Set headers\r
+
+      pm.request.headers.upsert({\r
+
+      \    key: \"X-API-Key\",\r
+
+      \    value: apiKey\r
+
+      });\r
+
+      \r
+
+      pm.request.headers.upsert({\r
+
+      \    key: \"X-Timestamp\",\r
+
+      \    value: timestamp\r
+
+      });\r
+
+      \r
+
+      pm.request.headers.upsert({\r
+
+      \    key: \"X-Nonce\",\r
+
+      \    value: nonce\r
+
+      });\r
+
+      \r
+
+      pm.request.headers.upsert({\r
+
+      \    key: \"X-Signature\",\r
+
+      \    value: signature\r
+
+      });\r
+
+      \r
+
+      console.log(\"Payload:\", payload);\r
+
+      console.log(\"Signature:\", signature);"
+    language: text/javascript
