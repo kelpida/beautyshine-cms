@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{URL}}/stores/working-hours"
+method: GET
+body:
+  type: json
+  content: ""
+order: 3179052020234839

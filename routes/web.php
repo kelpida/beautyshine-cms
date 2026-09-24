@@ -61,8 +61,10 @@ Route::middleware(['web', 'auth', HandleInertiaRequests::class])->group(function
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
-    Route::resource('/appointments', AppointmentController::class);
-    Route::post('/appointments/available-slots', [AppointmentController::class, 'getAvailableSlots'])
+    Route::resource('/order-calendar', AppointmentController::class);
+    Route::post('/order-calendar/available-slots', [AppointmentController::class, 'getWorkingHours'])
+        ->name('order-calendar.available-slots');
+    Route::post('/appointments/available-slots', [AppointmentController::class, 'getWorkingHours'])
         ->name('appointments.available-slots');
 
 
@@ -92,6 +94,7 @@ Route::middleware(['web', 'auth', HandleInertiaRequests::class])->group(function
         Route::resource('uploads', UploadFilesController::class);
 
         Route::resource('stores', StoreController::class);
+        Route::match(['get', 'post'], 'stores/{store}/working-hours', [StoreController::class, 'workingHours'])->name('stores.working-hours');
         Route::resource('holidays', HolidayController::class);
 
         Route::resource('roles', RolesController::class);

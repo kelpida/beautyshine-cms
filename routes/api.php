@@ -38,7 +38,7 @@ Route::prefix('public/auth')->middleware(['throttle:30,1'])->group(function () {
         // Route::get('/orders', [PatientOrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/check-promo/{code}', [PromoCodeController::class, 'checkPromo']);
-        Route::get('/appointments/slots', [AppointmentController::class, 'getAvailableSlots']);
+        Route::match(['get', 'post'], '/appointments/slots', [AppointmentController::class, 'getAvailableSlots']);
     });
 });
 
@@ -47,11 +47,13 @@ Route::middleware(['api.bearer'])->group(function () {
         Route::get('/pages', [PageController::class, 'publicIndex']);
         Route::get('/integrations', [IntegrationController::class, 'publicIndex']);
         Route::get('/stores', [StoreController::class, 'publicIndex']);
+        Route::match(['get', 'post'], '/stores/working-hours', [StoreController::class, 'workingHours']);
         Route::get('/visitor-session', [VisitorSessionController::class, 'store']);
 
         Route::prefix('/eshop')->group(function () {
             Route::get('/products', [ProductController::class, 'publicIndex']);
             Route::get('/products/{product}', [ProductController::class, 'publicShow']);
+            Route::match(['get', 'post'], '/working-hours', [AppointmentController::class, 'getWorkingHours']);
         });
 
         // Contact form routes

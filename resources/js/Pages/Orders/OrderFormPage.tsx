@@ -158,7 +158,8 @@ export default function OrderFormPage({
                             name: data?.client?.name,
                             surname: data?.client?.surname,
                             password: data?.client?.password,
-                            password_confirmation: data?.client?.password_confirmation,
+                            password_confirmation:
+                                data?.client?.password_confirmation,
                             phone_code: data?.client?.phone_code,
                             phone: data?.client?.phone,
                             email: data?.client?.email,
@@ -224,7 +225,7 @@ export default function OrderFormPage({
                         variant="solid"
                         icon={<CalendarOutlined />}
                         onClick={() =>
-                            router.visit(RouteList.appointments(), {
+                            router.visit(RouteList.orderCalendar(), {
                                 preserveScroll: true,
                                 preserveState: true,
                             })

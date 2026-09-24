@@ -105,13 +105,13 @@ export default function OrderShowPage({ order }: { order?: any }) {
                             variant="solid"
                             icon={<CalendarOutlined />}
                             onClick={() =>
-                                router.visit(RouteList.appointments(), {
+                                router.visit(RouteList.orderCalendar(), {
                                     preserveScroll: true,
                                     preserveState: true,
                                 })
                             }
                         >
-                            Appointments
+                            Orders Calendar
                         </Button>
                         <Button
                             type="primary"

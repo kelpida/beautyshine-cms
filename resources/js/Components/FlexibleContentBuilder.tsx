@@ -102,7 +102,7 @@ export default function FlexibleContentBuilder({
         text,
         blockId,
         fieldName,
-        extraIndex = null
+        extraIndex = null,
     ) => {
         if (!text) return;
 
@@ -142,7 +142,7 @@ export default function FlexibleContentBuilder({
                             (slide, i) =>
                                 i === extraIndex
                                     ? { ...slide, [fieldName]: translated }
-                                    : slide
+                                    : slide,
                         );
                     }
 
@@ -152,7 +152,7 @@ export default function FlexibleContentBuilder({
                         extraIndex !== null
                     ) {
                         langContent.items = langContent.items.map((item, i) =>
-                            i === extraIndex ? translated : item
+                            i === extraIndex ? translated : item,
                         );
                     }
 
@@ -191,7 +191,14 @@ export default function FlexibleContentBuilder({
     const getBlockTemplate = (type) => {
         switch (type) {
             case "feature":
-                return { heading: "", subheading: "", text: "", button_text: "", button_link: "", image_id: null };
+                return {
+                    heading: "",
+                    subheading: "",
+                    text: "",
+                    button_text: "",
+                    button_link: "",
+                    image_id: null,
+                };
             case "heading":
                 return { text: "" };
             case "text":
@@ -279,7 +286,7 @@ export default function FlexibleContentBuilder({
                         block.id,
                         langCode,
                         "text",
-                        e.target.value
+                        e.target.value,
                     )
                 }
                 onBlur={(e) =>
@@ -311,7 +318,7 @@ export default function FlexibleContentBuilder({
     const renderButtonBlock = (block, langCode) => {
         const content = block.content[langCode] || {};
         return (
-            <Space direction="vertical" style={{ width: "100%" }}>
+            <Space orientation="vertical" style={{ width: "100%" }}>
                 <InputField
                     label="Button Text"
                     value={content.text || ""}
@@ -320,7 +327,7 @@ export default function FlexibleContentBuilder({
                             block.id,
                             langCode,
                             "text",
-                            e.target.value
+                            e.target.value,
                         )
                     }
                     onBlur={(e) =>
@@ -337,7 +344,7 @@ export default function FlexibleContentBuilder({
                             block.id,
                             langCode,
                             "link",
-                            e.target.value
+                            e.target.value,
                         )
                     }
                     placeholder="/about"
@@ -359,7 +366,7 @@ export default function FlexibleContentBuilder({
                                 block.id,
                                 langCode,
                                 "target",
-                                e.target.value
+                                e.target.value,
                             )
                         }
                         style={{
@@ -393,7 +400,7 @@ export default function FlexibleContentBuilder({
                                 block.id,
                                 langCode,
                                 "action",
-                                e.target.value
+                                e.target.value,
                             )
                         }
                         style={{
@@ -430,7 +437,7 @@ export default function FlexibleContentBuilder({
                             block.id,
                             langCode,
                             "caption",
-                            e.target.value
+                            e.target.value,
                         )
                     }
                     onBlur={(e) =>
@@ -447,13 +454,13 @@ export default function FlexibleContentBuilder({
                                 block.id,
                                 langCode,
                                 "image_id",
-                                imgs[0]?.id || null
+                                imgs[0]?.id || null,
                             )
                         }
                         images={
                             content.image_id
                                 ? availableImages.filter(
-                                      (img) => img.id === content.image_id
+                                      (img) => img.id === content.image_id,
                                   )
                                 : []
                         }
@@ -597,7 +604,7 @@ export default function FlexibleContentBuilder({
                                     e.target.value,
                                     block.id,
                                     "caption",
-                                    idx
+                                    idx,
                                 )
                             }
                             placeholder="Slide caption"
@@ -622,13 +629,14 @@ export default function FlexibleContentBuilder({
                                     updateSlide(
                                         idx,
                                         "image_id",
-                                        imgs[0]?.id || null
+                                        imgs[0]?.id || null,
                                     )
                                 }
                                 images={
                                     slide.image_id
                                         ? availableImages.filter(
-                                              (img) => img.id === slide.image_id
+                                              (img) =>
+                                                  img.id === slide.image_id,
                                           )
                                         : []
                                 }
@@ -662,7 +670,7 @@ export default function FlexibleContentBuilder({
                 block.id,
                 langCode,
                 "items",
-                items.filter((_, i) => i !== index)
+                items.filter((_, i) => i !== index),
             );
         };
 
@@ -734,41 +742,104 @@ export default function FlexibleContentBuilder({
         const isEnglish = langCode === "en";
 
         return (
-            <Space direction="vertical" style={{ width: "100%" }}>
+            <Space orientation="vertical" style={{ width: "100%" }}>
                 <InputField
                     label="Heading"
                     value={content.heading || ""}
-                    onChange={(e) => updateBlockContent(block.id, langCode, "heading", e.target.value)}
-                    onBlur={(e) => langCode === "en" && handleBlurTranslate(e.target.value, block.id, "heading")}
+                    onChange={(e) =>
+                        updateBlockContent(
+                            block.id,
+                            langCode,
+                            "title",
+                            e.target.value,
+                        )
+                    }
+                    onBlur={(e) =>
+                        langCode === "en" &&
+                        handleBlurTranslate(e.target.value, block.id, "heading")
+                    }
                 />
                 <InputField
                     label="Subheading"
                     value={content.subheading || ""}
-                    onChange={(e) => updateBlockContent(block.id, langCode, "subheading", e.target.value)}
-                    onBlur={(e) => langCode === "en" && handleBlurTranslate(e.target.value, block.id, "subheading")}
+                    onChange={(e) =>
+                        updateBlockContent(
+                            block.id,
+                            langCode,
+                            "subheading",
+                            e.target.value,
+                        )
+                    }
+                    onBlur={(e) =>
+                        langCode === "en" &&
+                        handleBlurTranslate(
+                            e.target.value,
+                            block.id,
+                            "subheading",
+                        )
+                    }
                 />
                 <RichTextArea
                     label="Text Content"
                     value={content.text || ""}
-                    onChange={(val) => updateBlockContent(block.id, langCode, "text", val)}
-                    onBlur={(html) => langCode === "en" && handleBlurTranslate(html, block.id, "text")}
+                    onChange={(val) =>
+                        updateBlockContent(block.id, langCode, "text", val)
+                    }
+                    onBlur={(html) =>
+                        langCode === "en" &&
+                        handleBlurTranslate(html, block.id, "text")
+                    }
                 />
                 <InputField
                     label="Button Text"
                     value={content.button_text || ""}
-                    onChange={(e) => updateBlockContent(block.id, langCode, "button_text", e.target.value)}
-                    onBlur={(e) => langCode === "en" && handleBlurTranslate(e.target.value, block.id, "button_text")}
+                    onChange={(e) =>
+                        updateBlockContent(
+                            block.id,
+                            langCode,
+                            "button_text",
+                            e.target.value,
+                        )
+                    }
+                    onBlur={(e) =>
+                        langCode === "en" &&
+                        handleBlurTranslate(
+                            e.target.value,
+                            block.id,
+                            "button_text",
+                        )
+                    }
                 />
                 <InputField
                     label="Button Link"
                     value={content.button_link || ""}
-                    onChange={(e) => updateBlockContent(block.id, langCode, "button_link", e.target.value)}
+                    onChange={(e) =>
+                        updateBlockContent(
+                            block.id,
+                            langCode,
+                            "button_link",
+                            e.target.value,
+                        )
+                    }
                 />
                 {isEnglish && (
                     <MediaSelector
                         existingImages={availableImages}
-                        setImages={(imgs) => updateBlockContent(block.id, langCode, "image_id", imgs[0]?.id || null)}
-                        images={content.image_id ? availableImages.filter((img) => img.id === content.image_id) : []}
+                        setImages={(imgs) =>
+                            updateBlockContent(
+                                block.id,
+                                langCode,
+                                "image_id",
+                                imgs[0]?.id || null,
+                            )
+                        }
+                        images={
+                            content.image_id
+                                ? availableImages.filter(
+                                      (img) => img.id === content.image_id,
+                                  )
+                                : []
+                        }
                     />
                 )}
             </Space>
@@ -831,7 +902,7 @@ export default function FlexibleContentBuilder({
                         Content Blocks
                     </Text>
                     <Space
-                        direction="vertical"
+                        orientation="vertical"
                         style={{ width: "100%" }}
                         size={8}
                     >
@@ -906,7 +977,7 @@ export default function FlexibleContentBuilder({
 
                                 {blocks.map((block, index) => {
                                     const blockInfo = getBlockTypeInfo(
-                                        block.type
+                                        block.type,
                                     );
                                     const isExpanded =
                                         expandedBlock === block.id;
@@ -1007,13 +1078,13 @@ export default function FlexibleContentBuilder({
                                                                         ""
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         updateBlockLabel(
                                                                             block.id,
                                                                             e
                                                                                 .target
-                                                                                .value
+                                                                                .value,
                                                                         )
                                                                     }
                                                                     style={{
@@ -1030,7 +1101,7 @@ export default function FlexibleContentBuilder({
                                                                         setExpandedBlock(
                                                                             isExpanded
                                                                                 ? null
-                                                                                : block.id
+                                                                                : block.id,
                                                                         )
                                                                     }
                                                                 >
@@ -1047,7 +1118,7 @@ export default function FlexibleContentBuilder({
                                                                     }
                                                                     onClick={() =>
                                                                         deleteBlock(
-                                                                            block.id
+                                                                            block.id,
                                                                         )
                                                                     }
                                                                 />
@@ -1056,7 +1127,7 @@ export default function FlexibleContentBuilder({
                                                     >
                                                         {isExpanded &&
                                                             renderLanguageTabs(
-                                                                block
+                                                                block,
                                                             )}
                                                     </Card>
                                                 </div>

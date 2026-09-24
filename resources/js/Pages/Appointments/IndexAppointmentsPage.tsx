@@ -1,18 +1,22 @@
 import React from "react";
-import { Badge, Button, Calendar, Card } from "antd";
+import { Badge, Button, Calendar, Card, Space } from "antd";
 import dayjs from "dayjs";
 import AdminLayout from "@/Layouts/AdminLayout";
 import PageHeaderActions from "@/Components/PageHeaderActions";
 import { Link, router } from "@inertiajs/react";
 import { RouteList } from "@/routes/RouteList";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { Action } from "@/Components/TableButtonAction";
+import { PermissionList } from "@/routes/PermissionList";
 
-export default function IndexAppointmentsPage({ appointments = [] }) {
+export default function IndexAppointmentsPage({
+    pickupOrders = [],
+    deliveryOrders = [],
+}) {
     const getAppointmentsForDate = (value) => {
         const date = value.format("YYYY-MM-DD");
 
-        return appointments.filter((appointment) => {
+        return [...pickupOrders, ...deliveryOrders].filter((appointment) => {
             return appointment.date === date;
         });
     };
@@ -85,28 +89,44 @@ export default function IndexAppointmentsPage({ appointments = [] }) {
     return (
         <>
             <PageHeaderActions
-                title="Appointments"
-                permissions={pagePermissions}
-                backAction={RouteList.orders()}
-                backName={"View Orders List"}
+                title="Orders Calendar"
                 children={
-                    <Action permission={"store-appointment"}>
-                        <Button
-                            icon={<PlusOutlined />}
-                            type="primary"
-                            onClick={() =>
-                                router.visit(RouteList.createOrder(), {
-                                    preserveScroll: true,
-                                    preserveState: true,
-                                })
-                            }
-                        >
-                            Create Appointment
-                        </Button>
-                    </Action>
+                    <Space>
+                        <Action permission={PermissionList.orders.create}>
+                            <Button
+                                icon={<PlusOutlined />}
+                                type="primary"
+                                onClick={() =>
+                                    router.visit(RouteList.createOrder(), {
+                                        preserveScroll: true,
+                                        preserveState: true,
+                                    })
+                                }
+                            >
+                                Create Order
+                            </Button>
+                        </Action>
+                        <Action permission={PermissionList.orders.index}>
+                            <Button
+                                icon={<UnorderedListOutlined />}
+                                type="default"
+                                onClick={() =>
+                                    router.visit(RouteList.orders(), {
+                                        preserveScroll: true,
+                                        preserveState: true,
+                                    })
+                                }
+                            >
+                                View Orders List
+                            </Button>
+                        </Action>
+                    </Space>
                 }
             />
-            <Calendar cellRender={cellRender} className="p-5" />
+            <Calendar
+                cellRender={cellRender}
+                classNames={{ root: "p-[20px]!" }}
+            />
         </>
     );
 }

@@ -1,33 +1,6 @@
 export const RouteList: Record<string, any> = {
     dashboard: () => "/dashboard",
-    // properties
-    properties: () => "/properties",
-    createProperty: () => "/properties/create",
-    editProperty: (id: string | number) => `/properties/${id}`,
-    deleteProperty: (id: string | number) => `/properties/${id}`,
 
-    propertyTypes: () => "/properties/types",
-    createPropertyType: () => "/properties/types/create",
-    editPropertyType: (id: string | number) => `/properties/types/${id}`,
-    deletePropertyType: (id: string | number) => `/properties/types/${id}`,
-
-    propertyStatuses: () => "/properties/statuses",
-    createPropertyStatus: () => "/properties/statuses/create",
-    editPropertyStatus: (id: string | number) => `/properties/statuses/${id}`,
-    deletePropertyStatus: (id: string | number) => `/properties/statuses/${id}`,
-
-    propertyAttributes: () => "/properties/attributes",
-    createPropertyAttribute: () => "/properties/attributes/create",
-    editPropertyAttribute: (id: string | number) =>
-        `/properties/attributes/${id}`,
-    deletePropertyAttribute: (id: string | number) =>
-        `/properties/attributes/${id}`,
-
-    propertyAttributeCategories: () => "/properties/attribute-categories",
-    createPropertyAttributeCategory: () =>
-        "/properties/attribute-categories/create",
-    editPropertyAttributeCategory: (id: string | number) =>
-        `/properties/attribute-categories/${id}`,
     // post
     posts: () => "/posts",
     createPost: () => "/posts/create",
@@ -101,10 +74,10 @@ export const RouteList: Record<string, any> = {
     deleteHoliday: (id: string | number) => `/holidays/${id}`,
 
     // appointments
-    appointments: () => "/appointments",
-    createAppointments: () => "/appointments/create",
-    editAppointment: (id: string | number) => `/appointments/${id}`,
-    deleteAppointment: (id: string | number) => `/appointments/${id}`,
+    orderCalendar: () => "/order-calendar",
+    createOrderCalendar: () => "/order-calendar/create",
+    editOrderCalendar: (id: string | number) => `/order-calendar/${id}`,
+    deleteOrderCalendar: (id: string | number) => `/order-calendar/${id}`,
 
     // orders
     orders: () => "/orders",

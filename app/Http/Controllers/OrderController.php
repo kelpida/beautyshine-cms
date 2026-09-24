@@ -14,10 +14,12 @@ use App\Models\Eshop\Product;
 use App\Models\Eshop\ProductVariation;
 use App\Models\Order;
 use App\Models\OrderAppointment;
+use App\Models\PromoCode;
 use App\Models\Store;
 use App\Services\CalculateAmountService;
 use App\Services\PaymentProviderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -187,10 +189,18 @@ class OrderController extends Controller
         $validatedData = $request->validated();
 
         return DB::transaction(function () use ($validatedData) {
+            // Resolve promo code (accepts both promo_code_id and promo_code string)
+            $promoCodeId = $validatedData['promo_code_id'] ?? null;
+            if (!$promoCodeId && !empty($validatedData['promo_code'])) {
+                $promoCodeId = PromoCode::where('code', $validatedData['promo_code'])
+                    ->where('is_active', true)
+                    ->value('id');
+            }
+
             [$itemsAmount, $discountPrice, $totalAmount] =
                 $this->calculateAmount->calculate(
                     $validatedData['items'],
-                    $validatedData['promo_code_id'] ?? null
+                    $promoCodeId
                 );
 
             // Add delivery price to total if delivery is selected
@@ -200,24 +210,47 @@ class OrderController extends Controller
             $finalTotalAmount = $totalAmount + $deliveryPrice;
 
             // Resolve or create client
-            $clientId = $validatedData['client_id'] ?? null;
-            if (!$clientId && !empty($validatedData['client']['email'])) {
-                $client = Client::firstOrCreate(
-                    ['email' => $validatedData['client']['email']],
-                    array_filter([
-                        'name' => $validatedData['client']['name'] ?? '',
-                        'surname' => $validatedData['client']['surname'] ?? '',
-                        'phone' => $validatedData['client']['phone'] ?? null,
-                        'phone_code' => $validatedData['client']['phone_code'] ?? null,
-                        'address' => $validatedData['client']['address'] ?? null,
-                    ])
-                );
-                $clientId = $client->id;
+            $clientId = $validatedData['client_id'] ?? (auth('sanctum')->check() ? auth('sanctum')->id() : null);
+
+            if (!$clientId && !empty($validatedData['client'])) {
+                $clientData = $validatedData['client'];
+                $clientAttributes = array_filter([
+                    'name' => $clientData['name'] ?? '',
+                    'surname' => $clientData['surname'] ?? '',
+                    'phone' => $clientData['phone'] ?? null,
+                    'phone_code' => $clientData['phone_code'] ?? null,
+                    'address' => $clientData['address'] ?? null,
+                ]);
+
+                if (!empty($clientData['email'])) {
+                    $client = Client::firstOrCreate(
+                        ['email' => $clientData['email']],
+                        $clientAttributes
+                    );
+
+                    // Update existing client with any newly provided details
+                    $existingUpdates = array_filter([
+                        'name' => empty($client->name) ? ($clientData['name'] ?? null) : null,
+                        'surname' => empty($client->surname) ? ($clientData['surname'] ?? null) : null,
+                        'phone' => empty($client->phone) ? ($clientData['phone'] ?? null) : null,
+                        'phone_code' => empty($client->phone_code) ? ($clientData['phone_code'] ?? null) : null,
+                        'address' => empty($client->address) ? ($clientData['address'] ?? null) : null,
+                    ]);
+                    if (!empty($existingUpdates)) {
+                        $client->update($existingUpdates);
+                    }
+                    $clientId = $client->id;
+                } else {
+                    $client = Client::create(array_merge([
+                        'email' => null,
+                    ], $clientAttributes));
+                    $clientId = $client->id;
+                }
             }
 
             $order = Order::create([
                 'client_id' => $clientId,
-                'promo_code_id' => $validatedData['promo_code_id'] ?? null,
+                'promo_code_id' => $promoCodeId,
                 'amount' => $itemsAmount,
                 'discount_amount' => $discountPrice ?? 0,
                 'source' => $validatedData['source'] ?? OrderSourceEnum::ONLINE->value,
@@ -233,22 +266,39 @@ class OrderController extends Controller
             // Handle payment gateway or transaction
             $checkoutUrl = null;
             $paymentMethod = $validatedData['payment_method'] ?? PaymentMethodEnum::CARD->value;
+            $paymentMethodValue = $paymentMethod instanceof PaymentMethodEnum ? $paymentMethod->value : (string) $paymentMethod;
 
-            if ($paymentMethod === PaymentMethodEnum::CARD->value || $paymentMethod === 'card') {
+            $isCardOrWallet = in_array($paymentMethodValue, [
+                PaymentMethodEnum::CARD->value,
+                PaymentMethodEnum::APPLE_PAY->value,
+                PaymentMethodEnum::GOOGLE_PAY->value,
+                'card',
+                'apple_pay',
+                'google_pay',
+            ], true);
+
+            if ($isCardOrWallet) {
                 try {
                     $vivaData = $this->vivaWallet->createOrder(
                         $finalTotalAmount,
                         $clientId
                     );
 
+                    $orderCode = $vivaData['orderCode'] ?? null;
+                    $checkoutUrl = $vivaData['checkoutUrl'] ?? null;
+
                     $order->transactions()->create([
-                        'order_code' => $vivaData['orderCode'] ?? null,
+                        'order_code' => $orderCode,
                         'status' => 'pending',
                     ]);
-
-                    $checkoutUrl = $vivaData['checkoutUrl'] ?? null;
                 } catch (\Exception $e) {
                     Log::error('Viva Wallet order creation failed: ' . $e->getMessage());
+
+                    // Fallback transaction so order always has a transaction record
+                    $order->transactions()->create([
+                        'order_code' => 'ORD-' . strtoupper(uniqid()),
+                        'status' => 'pending',
+                    ]);
                 }
             } else {
                 $order->transactions()->create([
@@ -268,9 +318,10 @@ class OrderController extends Controller
             }
 
             return response()->json([
+                'success' => true,
                 'order_id' => $order->id,
                 'checkout_url' => $checkoutUrl,
-            ]);
+            ], 201);
         });
     }
 
@@ -426,8 +477,8 @@ class OrderController extends Controller
             $pickup = $validatedData['pickup_details'];
             $order->pickupDetails()->create([
                 'store_id' => $pickup['store_id'] ?? null,
-                'pickup_date' => $pickup['pickup_date'],
-                'pickup_time' => $pickup['pickup_time'],
+                'pickup_date' => $pickup['pickup_date'] ?? null,
+                'pickup_time' => $pickup['pickup_time'] ?? null,
                 'note' => $pickup['note'] ?? null,
             ]);
         }
@@ -447,7 +498,7 @@ class OrderController extends Controller
             ]);
         }
 
-        // Legacy appointments (if provided)
+        // Appointments (explicit or auto-created for calendar visibility)
         if (!empty($validatedData['appointments'])) {
             $appointment = $validatedData['appointments'];
             $order->appointments()->create([
@@ -458,6 +509,38 @@ class OrderController extends Controller
                 'status' => OrderAppointment::STATUS_PENDING,
                 'duration' => $appointment['duration'] ?? 0,
             ]);
+        } elseif (!empty($validatedData['pickup_details'])) {
+            // Auto-create calendar appointment entry for pickup
+            $pickup = $validatedData['pickup_details'];
+            $pickupTime = $pickup['pickup_time'] ?? null;
+            $endTime = $pickupTime ? Carbon::parse($pickupTime)->addMinutes(30)->format('H:i') : null;
+
+            if (!empty($pickup['pickup_date'])) {
+                $order->appointments()->create([
+                    'store_id' => $pickup['store_id'] ?? null,
+                    'date' => $pickup['pickup_date'],
+                    'start_time' => $pickupTime,
+                    'end_time' => $endTime,
+                    'status' => OrderAppointment::STATUS_PENDING,
+                    'duration' => 30,
+                ]);
+            }
+        } elseif (!empty($validatedData['delivery_details'])) {
+            // Auto-create calendar appointment entry for delivery
+            $delivery = $validatedData['delivery_details'];
+            $deliveryTime = $delivery['delivery_time'] ?? null;
+            $endTime = $deliveryTime ? Carbon::parse($deliveryTime)->addMinutes(30)->format('H:i') : null;
+
+            if (!empty($delivery['delivery_date'])) {
+                $order->appointments()->create([
+                    'store_id' => null,
+                    'date' => $delivery['delivery_date'],
+                    'start_time' => $deliveryTime,
+                    'end_time' => $endTime,
+                    'status' => OrderAppointment::STATUS_PENDING,
+                    'duration' => 30,
+                ]);
+            }
         }
     }
 }

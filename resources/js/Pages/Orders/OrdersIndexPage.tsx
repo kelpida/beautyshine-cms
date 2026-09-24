@@ -13,7 +13,13 @@ import {
     PaymentStatusOptions,
 } from "@/enum/PaymentStatus.enum";
 import { Button, Tooltip } from "antd";
-import { EditOutlined, EyeFilled } from "@ant-design/icons";
+import {
+    CalendarFilled,
+    CalendarOutlined,
+    EditOutlined,
+    EyeFilled,
+} from "@ant-design/icons";
+import { PermissionList } from "@/routes/PermissionList";
 
 function OrdersIndexPage({ orders }) {
     const [data, setData] = useState(orders.data);
@@ -147,10 +153,24 @@ function OrdersIndexPage({ orders }) {
                 <PageHeaderActions
                     title="Orders"
                     permissions={pagePermissions}
-                    backAction={RouteList.appointments()}
-                    backName={"View Appointmetns Callendar"}
                     addAction={RouteList.createOrder()}
-                    addName={"Create Appoitment"}
+                    addName={"Create Order"}
+                    children={
+                        <Action permission={PermissionList.appointments.index}>
+                            <Button
+                                icon={<CalendarOutlined />}
+                                type="default"
+                                onClick={() =>
+                                    router.visit(RouteList.orderCalendar(), {
+                                        preserveScroll: true,
+                                        preserveState: true,
+                                    })
+                                }
+                            >
+                                View Orders Calendar
+                            </Button>
+                        </Action>
+                    }
                 />
                 <DraggableTable
                     dataSource={data}

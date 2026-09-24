@@ -119,9 +119,9 @@ export const SideBarMenuList = [
                 permission: "",
             },
             {
-                key: RouteList.appointments(),
+                key: RouteList.orderCalendar(),
                 label: (
-                    <Link href={RouteList.appointments()}>Appointments</Link>
+                    <Link href={RouteList.orderCalendar()}>Order Calendar</Link>
                 ),
                 permission: "index-appointment",
             },
