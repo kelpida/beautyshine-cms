@@ -11,23 +11,31 @@ import {
 import { router, useForm } from "@inertiajs/react";
 import { Button, Card, Form, message, Steps } from "antd";
 import React, { useState } from "react";
-import PackageSection from "./components/PackageSection";
 import ClientSection from "./components/ClientSection";
 import AppointmentSection from "./components/AppointmentSection";
 import PaymentSection from "./components/PaymentSection";
 import dayjs from "dayjs";
+import ItemsSection from "./components/ItemsSection";
+import { useProducts } from "@/hooks/useProducts";
 
 export default function OrderFormPage({
-    packages,
+    products: initialProducts,
     clients,
     stores,
 }: {
-    packages?: any;
+    products?: any;
     clients?: any;
     stores?: any;
 }) {
-    const [selectedPackages, setSelectedPackages] = useState([]);
-    const [selectedClient, setSelectedClient] = useState({});
+    const {
+        products: productItems,
+        isLoading: isProductsLoading,
+        pagination,
+        setPage,
+        setPerPage,
+        setQ,
+        q,
+    } = useProducts({ page: 1, perPage: 12, initialData: initialProducts });
 
     const [stepsSetting, setStepsSetting] = useState({
         currentStep: 0,
@@ -65,12 +73,13 @@ export default function OrderFormPage({
             duration: "",
         },
     });
-    console.log("🚀 ~ OrderFormPage ~ data:", data);
 
     const handleNextStep = () => {
-        if (stepsSetting.currentStep == 0) {
-            if (data.items.length == 0) {
-                message.error("Please select packages first");
+        if (stepsSetting.currentStep === 0) {
+            if (!data.items || data.items.length === 0) {
+                message.error(
+                    "Please add at least one item to the order first",
+                );
                 return;
             }
         }
@@ -122,15 +131,29 @@ export default function OrderFormPage({
     };
 
     const handleSubmit = () => {
-        transform((data: any) => ({
-            ...data,
-            appointments: {
-                ...data.appointments,
-                date: dayjs(data.appointments.date, "DD-MM-YYYY").format(
-                    "YYYY-MM-DD",
-                ),
-            },
-        }));
+        transform((formData: any) => {
+            const formattedDate = formData.appointments?.date
+                ? dayjs(formData.appointments.date, "DD-MM-YYYY").isValid()
+                    ? dayjs(formData.appointments.date, "DD-MM-YYYY").format(
+                          "YYYY-MM-DD",
+                      )
+                    : formData.appointments.date
+                : null;
+
+            return {
+                ...formData,
+                order_type: formData.order_type || "pickup",
+                pickup_details: {
+                    store_id: formData.appointments?.store_id,
+                    pickup_date: formattedDate,
+                    pickup_time: formData.appointments?.start_time || null,
+                },
+                appointments: {
+                    ...formData.appointments,
+                    date: formattedDate,
+                },
+            };
+        });
 
         submitPost(route("orders.store"));
     };
@@ -139,12 +162,20 @@ export default function OrderFormPage({
         switch (stepsSetting.currentStep) {
             case 0:
                 return (
-                    <PackageSection
-                        packages={packages}
-                        setSelectedPackages={(packages: any) =>
-                            setData("items", packages)
+                    <ItemsSection
+                        items={productItems}
+                        loading={isProductsLoading}
+                        pagination={pagination}
+                        onPageChange={(page, pageSize) => {
+                            setPage(page);
+                            if (pageSize) setPerPage(pageSize);
+                        }}
+                        searchQuery={q}
+                        onSearchChange={setQ}
+                        setSelectedItems={(items: any) =>
+                            setData("items", items)
                         }
-                        selectedPackages={data.items}
+                        selectedItems={data.items}
                         onNext={() => handleNextStep()}
                     />
                 );
@@ -215,7 +246,7 @@ export default function OrderFormPage({
     return (
         <div>
             <PageHeaderActions
-                title={"Create Appointment"}
+                title={"Create Order"}
                 backAction={RouteList.orders()}
                 backName={"View Orders"}
                 children={
@@ -231,7 +262,7 @@ export default function OrderFormPage({
                             })
                         }
                     >
-                        View Appointment Calendar
+                        View Orders Calendar
                     </Button>
                 }
             />
@@ -247,7 +278,7 @@ export default function OrderFormPage({
                                 title: "Step 1",
                                 icon: <ShoppingCartOutlined />,
                                 status: renderStatus(0),
-                                content: "Packages",
+                                content: "Items & Extras",
                             },
                             {
                                 title: "Step 2",
@@ -259,13 +290,13 @@ export default function OrderFormPage({
                                 title: "Step 3",
                                 icon: <CalendarOutlined />,
                                 status: renderStatus(2),
-                                content: "Appointment Information",
+                                content: "Pickup Information",
                             },
                             {
                                 title: "Step 4",
                                 icon: <ShopOutlined />,
                                 status: renderStatus(3),
-                                content: "Payment Information",
+                                content: "Payment & Source",
                             },
                         ]}
                     />

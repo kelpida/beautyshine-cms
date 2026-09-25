@@ -99,6 +99,7 @@ class StoreOrderRequest extends FormRequest
             'client.phone' => ['nullable', 'string', 'max:20'],
             'client.phone_code' => ['nullable', 'string', 'max:10'],
             'client.address' => ['nullable', 'string'],
+            'client.client_type' => ['nullable', 'in:guest,registered'],
 
             'promo_code_id' => ['nullable', 'integer', 'exists:promo_codes,id'],
 
@@ -113,7 +114,17 @@ class StoreOrderRequest extends FormRequest
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.price' => ['nullable', 'numeric', 'min:0'],
 
-            // Pickup details
+            // Item options (e.g. selected attribute options, addons)
+            'items.*.options' => ['nullable', 'array'],
+            'items.*.options.*.attribute_name' => ['nullable', 'string', 'max:255'],
+            'items.*.options.*.option_name' => ['nullable', 'string', 'max:255'],
+            'items.*.options.*.price_modifier' => ['nullable', 'numeric'],
+            'items.*.options.*.option_id' => ['nullable', 'integer'],
+
+            // Item custom fields
+            'items.*.custom_fields' => ['nullable', 'array'],
+            'items.*.custom_fields.*.field_name' => ['nullable', 'string', 'max:255'],
+            'items.*.custom_fields.*.value' => ['nullable'],
             'pickup_details' => ['nullable', 'array'],
             'pickup_details.store_id' => ['nullable', 'integer', 'exists:stores,id'],
             'pickup_details.pickup_date' => ['nullable', 'date_format:Y-m-d'],

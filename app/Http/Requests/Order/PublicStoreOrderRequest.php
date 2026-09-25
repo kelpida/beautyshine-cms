@@ -126,6 +126,7 @@ class PublicStoreOrderRequest extends FormRequest
             'client.phone' => ['nullable', 'string', 'max:20'],
             'client.phone_code' => ['nullable', 'string', 'max:10'],
             'client.address' => ['nullable', 'string'],
+            'client.client_type' => ['nullable', 'in:guest,registered'],
 
             // Promo code
             'promo_code_id' => ['nullable', 'integer', 'exists:promo_codes,id'],

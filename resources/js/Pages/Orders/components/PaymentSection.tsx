@@ -1,7 +1,7 @@
 import SelectField from "@/Components/Form/SelectField";
 import { OrderSourceOptions } from "@/enum/OrderSource.enum";
 import { PaymentMethodsOptions } from "@/enum/PaymentMethods.enum";
-import { Button, Col, Row } from "antd";
+import { Button, Col, Flex, Row } from "antd";
 import React from "react";
 
 export default function PaymentSection({
@@ -28,22 +28,14 @@ export default function PaymentSection({
                     setSelectedPayment("payment_method", e.target.value)
                 }
             />
-            <Row className="mt-5">
-                <Col span={12} className="justify-start flex">
-                    <Button onClick={() => onBack()} type="primary">
-                        Back Step
-                    </Button>
-                </Col>
-                <Col span={12} className="justify-end flex">
-                    <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={processing}
-                    >
-                        Complete
-                    </Button>
-                </Col>
-            </Row>
+            <Flex justify="space-between" align="center" className="mt-5">
+                <Button onClick={() => onBack()} type="primary">
+                    Back Step
+                </Button>
+                <Button type="primary" htmlType="submit" loading={processing}>
+                    Complete
+                </Button>
+            </Flex>
         </div>
     );
 }

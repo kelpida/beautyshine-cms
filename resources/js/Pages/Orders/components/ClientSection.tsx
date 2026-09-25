@@ -27,7 +27,6 @@ export default function ClientSection({
     onNext?: any;
     onBack?: any;
 }) {
-    console.log("🚀 ~ ClientSection ~ selectedClient:", selectedClient);
     const [createNewUser, setCreateNewUser] = useState(false);
 
     useEffect(() => {
@@ -216,18 +215,15 @@ export default function ClientSection({
                     {createNewUser ? "Find client" : "New client"}
                 </Button>
             </Flex>
-            <Row className="mt-5">
-                <Col span={12} className="justify-start flex">
-                    <Button onClick={() => onBack()} type="primary">
-                        Back Step
-                    </Button>
-                </Col>
-                <Col span={12} className="justify-end flex">
-                    <Button onClick={() => onNext()} type="primary">
-                        Next Step
-                    </Button>
-                </Col>
-            </Row>
+            <Flex justify="space-between" align="center" className="mt-5">
+                <Button onClick={() => onBack()} type="primary">
+                    Back Step
+                </Button>
+
+                <Button onClick={() => onNext()} type="primary">
+                    Next Step
+                </Button>
+            </Flex>
         </>
     );
 }

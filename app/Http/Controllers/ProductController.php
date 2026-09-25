@@ -146,6 +146,25 @@ class ProductController extends Controller
         return PublicSingleProductResource::collection($products);
     }
 
+    public function orderItems(Request $request)
+    {
+        $query = Product::whereNull('deleted_at')
+            ->where('is_active', true)
+            ->with(['mainImage', 'variations.attributeOptions', 'addons', 'customFields', 'productAttributes'])
+            ->when($request->filled('q'), function ($q) use ($request) {
+                $search = $request->q;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('description', 'like', '%' . $search . '%')
+                        ->orWhere('short_description', 'like', '%' . $search . '%');
+                });
+            })
+            ->orderBy('sort_order', 'asc')
+            ->paginate($request->get('per_page', 12));
+
+        return response()->json($query);
+    }
+
     /**
      * Show the form for creating a new resource.
      */

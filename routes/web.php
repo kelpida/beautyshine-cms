@@ -61,6 +61,8 @@ Route::middleware(['web', 'auth', HandleInertiaRequests::class])->group(function
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
+    Route::get('/products/order-items', [ProductController::class, 'orderItems'])->name('products.order-items');
+
     Route::resource('/order-calendar', AppointmentController::class);
     Route::post('/order-calendar/available-slots', [AppointmentController::class, 'getWorkingHours'])
         ->name('order-calendar.available-slots');

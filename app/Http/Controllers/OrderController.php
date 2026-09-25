@@ -115,18 +115,22 @@ class OrderController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         $products = Product::whereNull('deleted_at')
             ->where('is_active', true)
-            ->with(['mainImage', 'variations', 'customFields'])
-            ->get();
+            ->with(['variations', 'addons', 'customFields', 'productAttributes'])
+
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%');
+            })
+
+            ->paginate($request->get('per_page', 10));
         $clients = Client::all();
         $stores = Store::whereNull('deleted_at')->get();
 
         return Inertia::render('Orders/OrderFormPage', [
             'products' => $products,
-            'packages' => $products, // backwards compatibility alias for OrderFormPage
             'clients' => $clients,
             'stores' => $stores,
         ]);

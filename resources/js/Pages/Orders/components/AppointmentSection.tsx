@@ -1,13 +1,17 @@
 import DatePickerField from "@/Components/Form/DatePickerField";
 import SelectField from "@/Components/Form/SelectField";
-import { Button, Card, Col, Divider, Flex, Row, Typography } from "antd";
+import { Alert, Button, Col, Divider, Flex, Row, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import InputLabel from "@/Components/InputLabel";
-import { LoadingOutlined } from "@ant-design/icons";
+import {
+    LoadingOutlined,
+    ClockCircleOutlined,
+    ShopOutlined,
+    ArrowLeftOutlined,
+    ArrowRightOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
-
-const { Paragraph } = Typography;
 
 export default function AppointmentSection({
     onBack,
@@ -38,7 +42,6 @@ export default function AppointmentSection({
     }, [appointment.appointments?.date, appointment.appointments?.store_id]);
 
     const getAvailableSlots = async ({ date, store_id }) => {
-        console.log("🚀 ~ getAvailableSlots ~ date:", date);
         try {
             setLoading(true);
 
@@ -46,32 +49,38 @@ export default function AppointmentSection({
                 route("appointments.available-slots"),
                 {
                     store_id,
-                    packages: appointment.items.map((item) => ({
-                        id: item.item_id,
-                        quantity: item.quantity,
-                    })),
                     date: date,
-                    step: 5,
+                    step: 15,
                 },
             );
 
             setAvailableSlot(response.data);
-        } catch (error) {
+        } catch (error: any) {
             console.log(error.response?.data);
         } finally {
             setLoading(false);
         }
     };
+
+    // Extract available times from API response (supports time_options and legacy slots)
+    const availableTimes: string[] =
+        availableSlot?.time_options ||
+        availableSlot?.slots?.map((s: any) => s.start_time || s.time) ||
+        [];
+
+    const isClosed =
+        availableSlot?.is_closed || availableSlot?.can_pickup === false;
+
     return (
         <>
-            <Divider>Appointment</Divider>
+            <Divider>Pickup Details</Divider>
             <Row gutter={16}>
                 <Col span={24}>
                     <SelectField
-                        label="Store"
+                        label="Pickup Store"
                         name="store_id"
                         value={appointment.appointments?.store_id}
-                        options={stores?.map((store) => ({
+                        options={stores?.map((store: any) => ({
                             label: store.name,
                             value: store.id,
                         }))}
@@ -85,7 +94,7 @@ export default function AppointmentSection({
                 </Col>
                 <Col span={24}>
                     <DatePickerField
-                        label="Date"
+                        label="Pickup Date"
                         name="date"
                         format="DD-MM-YYYY"
                         value={
@@ -97,68 +106,106 @@ export default function AppointmentSection({
                                 : null
                         }
                         onChange={(value) => {
-                            setAppointment(
-                                "appointments.date",
-                                value ? value.format("DD-MM-YYYY") : "",
-                            );
+                            const formattedDate = value
+                                ? value.format("DD-MM-YYYY")
+                                : "";
+                            setAppointment("appointments.date", formattedDate);
 
-                            getAvailableSlots({
-                                date: value.format("DD-MM-YYYY"),
-                                store_id: appointment.appointments?.store_id,
-                            });
+                            if (
+                                formattedDate &&
+                                appointment.appointments?.store_id
+                            ) {
+                                getAvailableSlots({
+                                    date: formattedDate,
+                                    store_id:
+                                        appointment.appointments?.store_id,
+                                });
+                            }
                         }}
                     />
                 </Col>
                 <Col span={24}>
-                    <InputLabel>Time slots</InputLabel>
-                    <Flex gap={8} wrap="wrap" justify="center" className="mt-2">
+                    <InputLabel>Pickup Time</InputLabel>
+
+                    {isClosed && (
+                        <Alert
+                            type="warning"
+                            showIcon
+                            message={
+                                availableSlot?.message ||
+                                "Store is closed for pickup on this date. Please select another date."
+                            }
+                            className="mt-2 mb-3"
+                        />
+                    )}
+
+                    <Flex
+                        gap={8}
+                        wrap="wrap"
+                        justify="flex-start"
+                        className="mt-2"
+                    >
                         {loading ? (
-                            <LoadingOutlined />
+                            <LoadingOutlined
+                                style={{ fontSize: 24, margin: "16px auto" }}
+                            />
+                        ) : availableTimes.length > 0 ? (
+                            availableTimes.map((timeStr: string) => {
+                                const isSelected =
+                                    appointment.appointments?.start_time ===
+                                    timeStr;
+                                return (
+                                    <Button
+                                        key={timeStr}
+                                        type={
+                                            isSelected ? "primary" : "default"
+                                        }
+                                        icon={<ClockCircleOutlined />}
+                                        onClick={() => {
+                                            setAppointment((prev: any) => ({
+                                                ...prev,
+                                                appointments: {
+                                                    ...prev?.appointments,
+                                                    start_time: timeStr,
+                                                    end_time: timeStr,
+                                                },
+                                            }));
+                                        }}
+                                    >
+                                        {timeStr}
+                                    </Button>
+                                );
+                            })
                         ) : (
-                            availableSlot?.slots?.map((slot: any) => (
-                                <Button
-                                    key={slot.start_time}
-                                    type={
-                                        appointment.appointments?.start_time ===
-                                        slot.start_time
-                                            ? "primary"
-                                            : "default"
-                                    }
-                                    disabled={!slot.available}
-                                    onClick={() => {
-                                        setAppointment((prev: any) => ({
-                                            ...prev,
-                                            appointments: {
-                                                ...prev?.appointments,
-                                                start_time: slot.start_time,
-                                                end_time: slot.end_time,
-                                                duration:
-                                                    availableSlot?.duration,
-                                            },
-                                        }));
-                                    }}
-                                >
-                                    {slot.start_time} - {slot.end_time}
-                                    {!slot.available &&
-                                        ` (${slot.remaining_capacity} left)`}
-                                </Button>
-                            ))
+                            !loading &&
+                            appointment.appointments?.date && (
+                                <Typography.Text type="secondary">
+                                    No pickup times available for this
+                                    selection.
+                                </Typography.Text>
+                            )
                         )}
                     </Flex>
                 </Col>
             </Row>
-            <Row className="mt-5">
-                <Col span={12} className="justify-start flex">
-                    <Button onClick={() => onBack()} type="primary">
-                        Back Step
-                    </Button>
-                </Col>
-                <Col span={12} className="justify-end flex">
-                    <Button onClick={() => onNext()} type="primary">
-                        Next Step
-                    </Button>
-                </Col>
-            </Row>
+            <Flex justify="space-between" align="center" className="mt-[40px]!">
+                <Button
+                    onClick={() => onBack()}
+                    type="default"
+                    icon={<ArrowLeftOutlined />}
+                >
+                    Back Step
+                </Button>
+
+                <Button
+                    onClick={() => onNext()}
+                    type="primary"
+                    iconPlacement="end"
+                    icon={<ArrowRightOutlined />}
+                >
+                    Next Step
+                </Button>
+            </Flex>
         </>
     );
 }

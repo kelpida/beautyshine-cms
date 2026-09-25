@@ -38,6 +38,7 @@ class UpdateClientRequest extends FormRequest
             'phone_code' => ['required', 'string', 'max:5'],
 
             'address' => ['required', 'string'],
+            'client_type' => ['nullable', 'in:guest,registered'],
         ];
     }
 }

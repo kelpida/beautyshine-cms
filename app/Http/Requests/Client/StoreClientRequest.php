@@ -26,13 +26,12 @@ class StoreClientRequest extends FormRequest
             'name' => ['required', 'string'],
             'surname' => ['required', 'string'],
             'email' => ['required', 'email', 'unique:clients,email'],
-
-            'password' => ['required', Password::defaults()],
-
+            'password' => ['nullable', Password::defaults()],
             'phone' => ['required', 'regex:/^[0-9]+$/', 'min:7', 'max:20'],
             'phone_code' => ['required', 'string', 'max:5'],
-
             'address' => ['required', 'string'],
+
+            'client_type' => ['nullable', 'in:guest,registered'],
         ];
     }
 }

@@ -159,7 +159,9 @@ function OrdersIndexPage({ orders }) {
                         <Action permission={PermissionList.appointments.index}>
                             <Button
                                 icon={<CalendarOutlined />}
+                                color="orange"
                                 type="default"
+                                variant="solid"
                                 onClick={() =>
                                     router.visit(RouteList.orderCalendar(), {
                                         preserveScroll: true,

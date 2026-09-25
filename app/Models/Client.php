@@ -24,12 +24,14 @@ class Client extends Authenticatable implements CanResetPassword
         'surname',
         'email',
         'password',
+        'client_type',
         'phone',
         'phone_code',
         'address',
         'visitor_id',
         'email_verified_at',
     ];
+
 
     protected $hidden = [
         'password',
