@@ -58,8 +58,8 @@ export const RouteList: Record<string, any> = {
     // clients
     clients: () => "/clients",
     createClients: () => "/clients/create",
-    editCleint: (id: string | number) => `/clients/${id}`,
-    deleteCleint: (id: string | number) => `/clients/${id}`,
+    editClient: (id: string | number) => `/clients/${id}`,
+    deleteClient: (id: string | number) => `/clients/${id}`,
 
     // store
     stores: () => "/stores",

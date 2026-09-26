@@ -150,9 +150,15 @@ class OrderController extends Controller
                     $validatedData['promo_code_id'] ?? null
                 );
 
+            $client = null;
             if (empty($validatedData['client_id'])) {
-                $client = Client::create($validatedData['client']);
+                try {
+                    $client = Client::create($validatedData['client']);
+                } catch (\Throwable $th) {
+                    throw $th;
+                }
             }
+
 
             $order = Order::create([
                 'client_id' => $validatedData['client_id'] ?? $client->id,

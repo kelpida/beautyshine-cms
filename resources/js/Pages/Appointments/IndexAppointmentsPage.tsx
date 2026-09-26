@@ -13,6 +13,8 @@ export default function IndexAppointmentsPage({
     pickupOrders = [],
     deliveryOrders = [],
 }) {
+    console.log("🚀 ~ IndexAppointmentsPage ~ deliveryOrders:", deliveryOrders);
+    console.log("🚀 ~ IndexAppointmentsPage ~ pickupOrders:", pickupOrders);
     const getAppointmentsForDate = (value) => {
         const date = value.format("YYYY-MM-DD");
 
@@ -67,7 +69,7 @@ export default function IndexAppointmentsPage({
                                                     ? "text-decoration-line-through"
                                                     : "text-decoration-none"
                                             }
-                                        >{`${appointment.start_time} - ${appointment.end_time} ${appointment.customer_name ?? ""}`}</span>
+                                        >{`${appointment.start_time} ${appointment.customer_name ?? ""}`}</span>
                                     }
                                 />
                             </Link>

@@ -41,30 +41,26 @@ class AppointmentController extends Controller
     public function index()
     {
         return Inertia::render('Appointments/IndexAppointmentsPage', [
-            'pickupOrders' => Order::with(['pickupDetails', 'store', 'client'])
+            'pickupOrders' => Order::with(['pickupDetails.store', 'client'])
                 ->whereHas('pickupDetails', fn($query) => $query->whereNotNull('pickup_date'))
                 ->get()
                 ->map(fn($order) => [
                     'id' => $order->id,
+                    'order_id' => $order->id,
                     'date' => $order->pickupDetails->pickup_date,
                     'start_time' => $order->pickupDetails->pickup_time,
-                    'end_time' => !empty($order->pickupDetails->pickup_time)
-                        ? Carbon::parse($order->pickupDetails->pickup_time)->addMinutes(30)->format('H:i')
-                        : null,
                     'status' => $order->status,
                     'customer_name' => trim(($order->client?->name ?? '') . " " . ($order->client?->surname ?? '')),
                 ]),
 
-            'deliveryOrders' => Order::with(['deliveryDetails', 'store', 'client'])
+            'deliveryOrders' => Order::with(['deliveryDetails', 'client'])
                 ->whereHas('deliveryDetails', fn($query) => $query->whereNotNull('delivery_date'))
                 ->get()
                 ->map(fn($order) => [
                     'id' => $order->id,
+                    'order_id' => $order->id,
                     'date' => $order->deliveryDetails->delivery_date,
                     'start_time' => $order->deliveryDetails->delivery_time,
-                    'end_time' => !empty($order->deliveryDetails->delivery_time)
-                        ? Carbon::parse($order->deliveryDetails->delivery_time)->addMinutes(30)->format('H:i')
-                        : null,
                     'status' => $order->status,
                     'customer_name' => trim(($order->client?->name ?? '') . " " . ($order->client?->surname ?? '')),
                 ]),

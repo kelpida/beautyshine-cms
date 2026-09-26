@@ -55,11 +55,6 @@ Route::middleware(['web', 'auth', HandleInertiaRequests::class])->group(function
         ]);
     })->name('dashboard');
     Route::get('/patient-dashboard', PatientDashboardController::class)->name('patient.dashboard');
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
-    Route::post('/orders/create', [OrderController::class, 'store'])->name('orders.store');
-    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-    Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
     Route::get('/products/order-items', [ProductController::class, 'orderItems'])->name('products.order-items');
 
@@ -94,6 +89,8 @@ Route::middleware(['web', 'auth', HandleInertiaRequests::class])->group(function
         Route::resource('eshop-attributes', AttributeController::class);
         Route::resource('eshop-products', ProductController::class);
         Route::resource('uploads', UploadFilesController::class);
+
+        Route::resource('orders', OrderController::class);
 
         Route::resource('stores', StoreController::class);
         Route::match(['get', 'post'], 'stores/{store}/working-hours', [StoreController::class, 'workingHours'])->name('stores.working-hours');

@@ -31,7 +31,6 @@ const { Title, Text } = Typography;
 export default function OrderShowPage({ order }: { order?: any }) {
     // Unpack data if wrapped in Resource
     const orderData = order?.data || order;
-    console.log("🚀 ~ OrderShowPage ~ orderData:", orderData);
 
     const [status, setStatus] = useState(orderData?.order_status);
     const [loading, setLoading] = useState(false);
@@ -64,9 +63,14 @@ export default function OrderShowPage({ order }: { order?: any }) {
 
     const itemColumns = [
         {
-            title: "Package",
-            dataIndex: "package_name",
-            key: "package_name",
+            title: "Product",
+            dataIndex: "product_name",
+            key: "product_name",
+        },
+        {
+            title: "Options",
+            dataIndex: "variation_name",
+            key: "variation_name",
         },
         {
             title: "Price",
@@ -140,7 +144,7 @@ export default function OrderShowPage({ order }: { order?: any }) {
                             {orderData.order_status?.toUpperCase()}
                         </Tag>
                     }
-                    bordered={false}
+                    variant="outlined"
                     className="shadow-sm rounded-lg mb-2"
                 >
                     <Descriptions
@@ -254,7 +258,7 @@ export default function OrderShowPage({ order }: { order?: any }) {
                                     >
                                         <Table.Summary.Cell
                                             index={0}
-                                            colSpan={3}
+                                            colSpan={4}
                                         >
                                             <Text
                                                 strong
@@ -310,7 +314,7 @@ export default function OrderShowPage({ order }: { order?: any }) {
                                     >
                                         <Table.Summary.Cell
                                             index={0}
-                                            colSpan={3}
+                                            colSpan={4}
                                         >
                                             <Text
                                                 strong
