@@ -235,7 +235,7 @@ export default function StoreFormPage({
                                                 errors[`translations.${locale}.name`] ||
                                                 (isDefaultLanguage ? errors.name : undefined)
                                             }
-                                            placeholder="e.g., Alice Blooms Central"
+                                            placeholder="e.g., BeautyShine Central"
                                         />
                                     </Col>
 
@@ -401,11 +401,10 @@ export default function StoreFormPage({
                                 <Card
                                     key={index}
                                     size="small"
-                                    className={`transition-colors border ${
-                                        scope.is_closed
+                                    className={`transition-colors border ${scope.is_closed
                                             ? "bg-gray-50 border-gray-200"
                                             : "bg-white border-blue-100 hover:border-blue-300"
-                                    }`}
+                                        }`}
                                 >
                                     <Row gutter={16} align="middle">
                                         <Col xs={24} sm={7} md={6}>

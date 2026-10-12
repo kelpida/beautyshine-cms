@@ -191,7 +191,7 @@ export default function TaxonomySeoStep({
                         value={data.meta_title || ""}
                         onChange={(e: any) => setData("meta_title", e.target.value)}
                         error={errors.meta_title}
-                        placeholder="e.g. Vintage Heart Cake | Alice Blooms"
+                        placeholder="e.g. Vintage Heart Cake | BeautyShine"
                     />
                 </Col>
 

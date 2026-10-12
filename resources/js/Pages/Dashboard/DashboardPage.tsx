@@ -23,7 +23,7 @@ export default function DashboardPage({
 
             <Flex justify="space-between" align="center">
                 <Text style={{ fontSize: "1.25rem" }}>
-                    Welcome in Alice Blooms CMS!
+                    Welcome in BeautyShine CMS!
                 </Text>
 
                 <RangePicker
