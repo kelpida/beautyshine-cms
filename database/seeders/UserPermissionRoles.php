@@ -80,10 +80,10 @@ class UserPermissionRoles extends Seeder
 
         // Create super-admin user
         $superAdminUser = User::firstOrCreate(
-            ['email' => 'superadmin@chameleon.com'],
+            ['email' => 'superadmin@beautyshine.com'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('rR1XCdFX87Bq7DfDd7xP'), // Change this for production
+                'password' => Hash::make('pXvJ3kC8bA9lR6sVwE7y'), // Change this for production
             ]
         );
 

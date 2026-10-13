@@ -7,7 +7,19 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+# BeautyShine CMS
+
+Content Management System for BeautyShine built with Laravel 12, Inertia.js (React), and Vite.
+
+## 🚀 Local Development
+
+For complete instructions on setting up and running the CMS locally, see:
+👉 **[Local Development Guide](RUN_LOCALLY.md)**
+
+---
+
 ## About Laravel
+
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
