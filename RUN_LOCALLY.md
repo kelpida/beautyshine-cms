@@ -94,9 +94,14 @@ CACHE_STORE=database
 # Local frontend client URL
 FRONTEND_URL="http://localhost:3000"
 SANCTUM_STATEFUL_DOMAINS="localhost:3000,127.0.0.1:3000,localhost:8000,127.0.0.1:8000"
+CMS_ADMIN_PASSWORD=
 ```
 
+Set `CMS_ADMIN_PASSWORD` in your local `.env` to a strong, unique password before running `php artisan db:seed`. Never put real credentials in `.env.example` or commit `.env`.
+
 > **Note on Existing Remote DB:** If your `.env` is currently pointing to the remote AWS RDS instance, be careful running fresh migrations or seeds against production/live data. For safe local testing, point `DB_HOST` to `127.0.0.1`.
+
+> **Credential exposure:** Credentials previously committed to this repository must be revoked or rotated at their providers, including database, company email, Google, and payment-provider credentials. Removing them from the current branch does not remove them from old commits; coordinate a Git history rewrite and force-push after rotation. Rotating `APP_KEY` invalidates existing encrypted Laravel data and sessions, so account for that impact before rotating it.
 
 ---
 
@@ -150,9 +155,9 @@ To populate the database with default roles, permissions, and the initial supera
 php artisan db:seed
 ```
 
-#### 🔑 Default Seeded Admin Credentials:
+#### 🔑 Seeded Admin Account:
 - **Email:** `superadmin@beautyshine.com`
-- **Password:** `pXvJ3kC8bA9lR6sVwE7y`
+- **Password for a newly created account:** The value you set for `CMS_ADMIN_PASSWORD` in `.env` (seeding does not reset an existing account's password)
 
 ---
 
@@ -209,7 +214,7 @@ php artisan queue:listen --tries=1
    ```
 2. Log in with the superadmin credentials:
    - **Email:** `superadmin@beautyshine.com`
-   - **Password:** `pXvJ3kC8bA9lR6sVwE7y`
+   - **Password:** The value you set for `CMS_ADMIN_PASSWORD` when the account was first created
 3. You will be redirected to the CMS Dashboard (`/dashboard`).
 
 ---

@@ -7,6 +7,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class UserPermissionRoles extends Seeder
 {
@@ -15,6 +16,11 @@ class UserPermissionRoles extends Seeder
      */
     public function run(): void
     {
+        $adminPassword = config('services.cms_admin.password');
+        if (! is_string($adminPassword) || $adminPassword === '') {
+            throw new RuntimeException('Set CMS_ADMIN_PASSWORD in your environment before seeding.');
+        }
+
         // Define roles
         $roles = [
             [
@@ -83,7 +89,7 @@ class UserPermissionRoles extends Seeder
             ['email' => 'superadmin@beautyshine.com'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('pXvJ3kC8bA9lR6sVwE7y'), // Change this for production
+                'password' => Hash::make($adminPassword),
             ]
         );
 
